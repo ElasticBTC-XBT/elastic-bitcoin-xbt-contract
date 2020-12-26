@@ -25,7 +25,7 @@ contract AirdropLander {
         uint256 remainingFund = tokenInstance.balanceOf(address(this)) - claimableAmount;
 
         require(
-            contractXBTFundRatio > 0,
+            remainingFund > 0,
             'Error: contract fund is exceeded'
         );
 
