@@ -5,7 +5,8 @@ import "../lib/ERC20.sol";
 
 contract AirdropLander {
     using SafeMath for uint256;
-    IERC20 public tokenInstance;
+
+    ERC20UpgradeSafe public tokenInstance;
     uint256 public claimableAmount;
 
     mapping(address => bool) participants;
@@ -14,15 +15,17 @@ contract AirdropLander {
         require(_tokenInstance != address(0), 'Error: cannot add token at NoWhere :)');
         require(uint256(_claimableAmount) > 0, 'Error: claimable amount cannot be zero');
 
-        tokenInstance = IERC20(_tokenInstance);
-        claimableAmount = uint256(_claimableAmount);
+        tokenInstance = ERC20UpgradeSafe(_tokenInstance);
+
+        uint256 decimals = uint256(tokenInstance.decimals());
+        claimableAmount = uint256(_claimableAmount * (10 ** decimals));
     }
 
     function requestTokens() public {
-        uint256 contractXBTFundRatio = tokenInstance.balanceOf(address(this)).div(claimableAmount);
+        uint256 remainingFund = tokenInstance.balanceOf(address(this)) - claimableAmount;
 
         require(
-            contractXBTFundRatio > 1,
+            contractXBTFundRatio > 0,
             'Error: contract fund is exceeded'
         );
 
