@@ -1,17 +1,12 @@
 module.exports = {
   networks: {
-    development: {
-      protocol: 'http',
-      host: 'localhost',
-      port: 8545,
-      gas: 5000000,
-      gasPrice: 5e9,
-      networkId: '*',
+    ganache: {
+      url: 'http://127.0.0.1:7545',
+      networkId: 5777
     },
-    ropsten: {
-      provider: () => new HDWalletProvider("[]", "https://ropsten.infura.io/v3/[]" ),
-      
-      networkId: 3,       // Ropsten's id
+    rinkeby: {
+      url: 'https://rinkeby.infura.io/v3/[]',
+      networkId: 4,
     }
   },
 };

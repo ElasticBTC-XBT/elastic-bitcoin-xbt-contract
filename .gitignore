@@ -439,4 +439,6 @@ yarn.lock
 truffle-config.js
 .vscode/
 .openzeppelin/
-build
+build/
+artifacts/
+cache/

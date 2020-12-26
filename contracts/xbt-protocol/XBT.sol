@@ -1,13 +1,12 @@
 pragma solidity >=0.6.0;
 
 import "@openzeppelin/contracts-ethereum-package/contracts/math/SafeMath.sol";
-
 import "@openzeppelin/contracts-ethereum-package/contracts/access/Ownable.sol";
-
-import "./ERC20.sol";
-
-import "./lib/SafeMathInt.sol";
 import "hardhat/console.sol";
+
+import "../lib/ERC20.sol";
+
+import "../lib/SafeMathInt.sol";
 
 /**
  * @title XBT ERC20 token
@@ -135,7 +134,7 @@ contract XBT is  ERC20UpgradeSafe, OwnableUpgradeSafe {
     function initialize(address owner_)
         public
         initializer
-        
+
     {
         ERC20UpgradeSafe.__ERC20_init("Elastic Bitcoin", "XBT");
         ERC20UpgradeSafe._setupDecimals(uint8(DECIMALS));
@@ -155,7 +154,7 @@ contract XBT is  ERC20UpgradeSafe, OwnableUpgradeSafe {
      * @return The total number of fragments.
      */
 
-    function totalSupply() 
+    function totalSupply()
         public
         view
 
@@ -174,7 +173,7 @@ contract XBT is  ERC20UpgradeSafe, OwnableUpgradeSafe {
     function balanceOf(address who)
         public
         view
-        
+
         override
         virtual
         returns (uint256)

@@ -1,30 +1,31 @@
-pragma solidity ^0.5.1;
+pragma solidity >=0.6.8;
 
-contract Faucet {
-    uint256 constant public tokenAmount = 100000000000000000000;
-    uint256 constant public waitTime = 30 minutes;
+import "../lib/ERC20.sol";
 
-    ERC20 public tokenInstance;
+contract AirdropLander {
+    IERC20 public tokenInstance;
+    uint256 public claimableAmount;
 
-    mapping(address => uint256) lastAccessTime;
+    mapping(address => bool) participants;
 
-    constructor(address _tokenInstance) public {
+    constructor(address _tokenInstance, uint256 claimableAmount) public {
         require(_tokenInstance != address(0));
-        tokenInstance = ERC20(_tokenInstance);
+        tokenInstance = IERC20(_tokenInstance);
+        claimableAmount = claimableAmount;
     }
 
     function requestTokens() public {
-        require(allowedToWithdraw(msg.sender));
-        tokenInstance.transfer(msg.sender, tokenAmount);
-        lastAccessTime[msg.sender] = block.timestamp + waitTime;
-    }
+        require(
+            tokenInstance.balanceOf(address(this)) / claimableAmount > 1,
+            'Error: contract fund is exceeded'
+        );
 
-    function allowedToWithdraw(address _address) public view returns (bool) {
-        if(lastAccessTime[_address] == 0) {
-            return true;
-        } else if(block.timestamp >= lastAccessTime[_address]) {
-            return true;
-        }
-        return false;
+        require(
+            participants[msg.sender] == false,
+            'Error: participated addresses cannot claim tokens'
+        );
+
+        tokenInstance.transfer(msg.sender, claimableAmount);
+        participants[msg.sender] = true;
     }
 }

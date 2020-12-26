@@ -1,13 +1,12 @@
 pragma solidity >=0.6.0;
 
 import "@openzeppelin/contracts-ethereum-package/contracts/access/Ownable.sol";
-
+import "@openzeppelin/contracts-ethereum-package/contracts/math/SafeMath.sol";
+import '@uniswap/v2-core/contracts/interfaces/IUniswapV2Pair.sol';
 
 import "../lib/SafeMathInt.sol";
 import "../lib/UInt256Lib.sol";
 import "./XBT.sol";
-
-import '@uniswap/v2-core/contracts/interfaces/IUniswapV2Pair.sol';
 
 
 
