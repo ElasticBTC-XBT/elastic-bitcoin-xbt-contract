@@ -1,11 +1,10 @@
 pragma solidity >=0.6.0;
 
-// import "@openzeppelin/contracts-ethereum-package/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/access/Ownable.sol";
 
 
-import "./lib/SafeMathInt.sol";
-import "./lib/UInt256Lib.sol";
+import "../lib/SafeMathInt.sol";
+import "../lib/UInt256Lib.sol";
 import "./XBT.sol";
 
 import '@uniswap/v2-core/contracts/interfaces/IUniswapV2Pair.sol';
@@ -162,7 +161,7 @@ contract Policy is OwnableUpgradeSafe {
     // MAX_SUPPLY = MAX_INT256 / MAX_RATE
     uint256 private constant MAX_SUPPLY = ~(uint256(1) << 255) / MAX_RATE;
 
-   
+
 
     uint256 private constant PRICE_PRECISION = 10**2;
 
@@ -177,32 +176,32 @@ contract Policy is OwnableUpgradeSafe {
         onlyOwner
     {
 		_pairXBTWBTC = IUniswapV2Pair(UniswapV2Library.pairFor(factory, token0, token1));
-		
+
     }
     // function setToken0Token1(address token0, address token1)
     //     external
     //     onlyOwner
     // {
 	// 	(address token0, address token1) = UniswapV2Library.sortTokens( token0, token1);
-		
+
     // }
 
 
     function getPriceXBT_WBTC() internal returns (uint256) {
-        
-	    
+
+
 	    require(address(_pairXBTWBTC) != address(0), "error: address(_pairXBTWBTC) == address(0)" );
-        
-	 
+
+
 	    (uint256 reserves0, uint256 reserves1,) = _pairXBTWBTC.getReserves();
         console.log("reserves0 %s", reserves0);
         console.log("reserves1 %s", reserves1);
-	    
+
 	    // reserves1 = WBTC (8 decimals)
 	    // reserves0 = XBT (8 decimals)
-	    
+
         return reserves0.mul(PRICE_PRECISION).div(reserves1);
-    }   
+    }
 
 
     /**
@@ -230,7 +229,7 @@ contract Policy is OwnableUpgradeSafe {
         epoch = epoch.add(1);
 
 
-        uint256 targetRate = 1 * PRICE_PRECISION; // 1 XBT = 1 WBTC ==> 1.mul(10 ** PRICE_PRECISION); 
+        uint256 targetRate = 1 * PRICE_PRECISION; // 1 XBT = 1 WBTC ==> 1.mul(10 ** PRICE_PRECISION);
 
         uint256 exchangeRate = getPriceXBT_WBTC();
 
@@ -241,7 +240,7 @@ contract Policy is OwnableUpgradeSafe {
         }
 
         int256 supplyDelta = computeSupplyDelta(exchangeRate, targetRate);
-        
+
 
         // Apply the Dampening factor.
         supplyDelta = supplyDelta.div(rebaseLag.toInt256Safe());
@@ -344,15 +343,15 @@ contract Policy is OwnableUpgradeSafe {
             let dataAddress := add(data, 32)
 
 
-            
+
 
             result := call(
                 // 34710 is the value that solidity is currently emitting
                 // It includes callGas (700) + callVeryLow (3, to pay for SUB)
                 // + callValueTransferGas (9000) + callNewAccountGas
                 // (25000, in case the destination address does not exist and needs creating)
-            
-                // https://solidity.readthedocs.io/en/v0.6.12/yul.html#yul    
+
+                // https://solidity.readthedocs.io/en/v0.6.12/yul.html#yul
                 sub(gas() , 34710),
 
 
@@ -366,8 +365,8 @@ contract Policy is OwnableUpgradeSafe {
         }
         return result;
     }
-    
-  
+
+
 
     /**
      * @notice Sets the deviation threshold fraction. If the exchange rate given by the market
@@ -434,13 +433,13 @@ contract Policy is OwnableUpgradeSafe {
         public
         initializer
     {
-        
+
         OwnableUpgradeSafe.__Ownable_init();
 
         // deviationThreshold = 0.05e8 = 5e6
         deviationThreshold = 5 * 10 ** (DECIMALS-2);
 
-        rebaseLag = 8 * 3 * 100; // 8 hours * 3 * 100 days 
+        rebaseLag = 8 * 3 * 100; // 8 hours * 3 * 100 days
         minRebaseTimeIntervalSec = 24 * 60 * 60; // 24 hours;
         rebaseWindowOffsetSec = 0;  //
         rebaseWindowLengthSec =  8 * 60 * 60;// 8 * 60 * 60 minutes;
@@ -475,12 +474,12 @@ contract Policy is OwnableUpgradeSafe {
             return 0;
         }
 
-        
+
         int256 targetRateSigned = targetRate.toInt256Safe();
 
         int256 supply =  XBTs.totalSupply().toInt256Safe();
 
-        
+
         return supply.mul(rate.toInt256Safe().sub(targetRateSigned).div(targetRateSigned));
     }
 
