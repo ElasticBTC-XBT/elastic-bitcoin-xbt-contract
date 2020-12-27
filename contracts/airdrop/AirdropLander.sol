@@ -10,15 +10,15 @@ contract AirdropLander {
 
     uint256 public claimableAmount;
 
-    mapping(address => uint256) participantWaitTime;
+    mapping(address => uint256) public participantWaitTime;
 
-    address private owner;
+    address public owner;
 
-    uint256 private nextPeriodWaitTime; // in sec value
+    uint256 public nextPeriodWaitTime; // in sec value
 
-    uint256 private bonusMinRate;
+    uint256 public bonusMinRate;
 
-    uint256 private bonusMaxRate;
+    uint256 public bonusMaxRate;
 
     constructor(
         address _tokenInstance,
@@ -90,7 +90,7 @@ contract AirdropLander {
             )
         );
         uint256 bonusRate = randomHash.mod(bonusMaxRate - bonusMinRate) + bonusMinRate;
-        return bonusRate.div(bonusMaxRate);
+        return bonusRate;
     }
 
     function participantWaitTimeOf(address who) public view returns (uint256){
@@ -99,9 +99,8 @@ contract AirdropLander {
 
     function requestTokens() public {
         // now have some fun, maybe users will receive more than standard rewards
-        uint256 actualReward = claimableAmount.mul(
-            calculateBonusRate()
-        );
+        uint256 bonusRate = calculateBonusRate();
+        uint256 actualReward = claimableAmount.mul(bonusRate).div(100);
 
         int256 remainingFund = int256(
             tokenInstance.balanceOf(address(this))
