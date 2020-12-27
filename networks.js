@@ -14,7 +14,8 @@ module.exports = {
       url: `https://mainnet.infura.io/v3/${process.env.INFURA_ID}`,
       accounts: [process.env.PRIVATE_KEY],
       gas: 'auto',
-      gasPrice: 'auto'
+      gasPrice: 'auto',
+      chainId: 1,
     }
   },
 };
