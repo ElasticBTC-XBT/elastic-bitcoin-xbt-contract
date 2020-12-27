@@ -8,7 +8,7 @@
 !.vscode/launch.json
 !.vscode/extensions.json
 ### Eclipse template
-
+.env
 .metadata
 tmp/
 *.tmp

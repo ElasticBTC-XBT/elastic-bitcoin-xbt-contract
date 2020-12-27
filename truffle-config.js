@@ -17,12 +17,11 @@
  * phrase from a file you've .gitignored so it doesn't accidentally become public.
  *
  */
+require('dotenv').config();
 
-const HDWalletProvider = require('@truffle/hdwallet-provider');
-// const infuraKey = "fj4jll3k.....";
-//
-// const fs = require('fs');
-const mnemonic = "cash seed balance top sword swim track craft tooth gap patient glad"
+const HDWalletProvider = require("truffle-hdwallet-provider-privkey");
+
+const privateKeys = [process.env.PRIVATE_KEY]; // private keys
 
 module.exports = {
   /**
@@ -36,11 +35,14 @@ module.exports = {
    */
 
   networks: {
-    ropsten: {
+    mainnet: {
       provider: function() {
-        return new HDWalletProvider(mnemonic, "https://ropsten.infura.io/v3/07b667eff25947b7bb9fce9bde73efda")
+        return new HDWalletProvider(privateKeys, `https://mainnet.infura.io/v3/${process.env.INFURA_ID}`)
       },
-      network_id: 3
+      gas: 400000,
+      gasPrice: 130000000000,
+      network_id: 1,
+      skipDryRun: true
     },
     // Useful for testing. The `development` name is special - truffle uses it by default
     // if it's defined here and no other network is specified at the command line.
