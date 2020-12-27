@@ -7,13 +7,27 @@ contract AirdropLander {
     using SafeMath for uint256;
 
     ERC20UpgradeSafe public tokenInstance;
+
     uint256 public claimableAmount;
-    mapping(address => bool) participants;
+
+    mapping(address => uint256) participantWaitTime;
+
     address private owner;
 
-    constructor(address _tokenInstance, uint256 _claimableAmount) public {
+    uint256 private nextPeriodWaitTime; // in sec value
+
+    uint256 private bonusMinRate;
+
+    uint256 private bonusMaxRate;
+
+    constructor(
+        address _tokenInstance,
+        uint256 _claimableAmount,
+        uint256 _nextPeriodWaitTime,
+        uint256 _bonusMinRate,
+        uint256 _bonusMaxRate
+    ) public {
         require(_tokenInstance != address(0), 'Error: cannot add token at NoWhere :)');
-        require(uint256(_claimableAmount) > 0, 'Error: claimable amount cannot be zero');
 
         // set distribution token address
         tokenInstance = ERC20UpgradeSafe(_tokenInstance);
@@ -22,25 +36,76 @@ contract AirdropLander {
         owner = msg.sender;
 
         // set claimable amount
-        adjustClaimableAmount(_claimableAmount);
+        setClaimableAmount(_claimableAmount);
+
+        // set next period wait time
+        setNextPeriodWaitTime(_nextPeriodWaitTime);
+
+        // set next period wait time
+        setBonusRate(_bonusMinRate, _bonusMaxRate);
     }
 
-    function participantStatusOf(address who) public view returns (bool){
-        return participants[who];
+    function setBonusRate(uint256 from, uint256 to) private {
+        require(
+            owner == msg.sender,
+            'Error: only owner can adjust bonus rate'
+        );
+
+        require(
+            uint256(from) < uint256(to),
+            'Error: from value must be less than to value'
+        );
+
+        // set bonus rate
+        bonusMinRate = uint256(from);
+        bonusMaxRate = uint256(to);
     }
 
-    function adjustClaimableAmount(uint256 _claimableAmount) private {
+    function setNextPeriodWaitTime(uint256 _nextPeriodWaitTime) private {
+        require(
+            owner == msg.sender,
+            'Error: only owner can adjust wait time'
+        );
+        require(uint256(_nextPeriodWaitTime) >= 1 minutes, 'Error: Wait time should be at least 1 minutes');
+
+        // set next period wait time
+        nextPeriodWaitTime = uint256(_nextPeriodWaitTime);
+    }
+
+    function setClaimableAmount(uint256 _claimableAmount) private {
         require(
             owner == msg.sender,
             'Error: only owner can adjust claimable amount'
         );
+        require(uint256(_claimableAmount) > 0, 'Error: claimable amount cannot be zero');
 
         uint256 decimals = uint256(tokenInstance.decimals());
-        claimableAmount = uint256(_claimableAmount * (10 ** decimals));
+        claimableAmount = uint256(_claimableAmount.mul(10 ** decimals));
+    }
+
+    function calculateBonusRate() private view returns (uint256) {
+        uint256 randomHash = uint256(
+            keccak256(
+                abi.encodePacked(block.difficulty, now)
+            )
+        );
+        uint256 bonusRate = randomHash.mod(bonusMaxRate - bonusMinRate) + bonusMinRate;
+        return bonusRate.div(bonusMaxRate);
+    }
+
+    function participantWaitTimeOf(address who) public view returns (uint256){
+        return participantWaitTime[who];
     }
 
     function requestTokens() public {
-        int256 remainingFund = int256(tokenInstance.balanceOf(address(this))) - int256(claimableAmount);
+        // now have some fun, maybe users will receive more than standard rewards
+        uint256 actualReward = claimableAmount.mul(
+            calculateBonusRate()
+        );
+
+        int256 remainingFund = int256(
+            tokenInstance.balanceOf(address(this))
+        ) - int256(actualReward);
 
         require(
             remainingFund > 0,
@@ -48,11 +113,11 @@ contract AirdropLander {
         );
 
         require(
-            participants[msg.sender] == false,
-            'Error: participated addresses cannot claim tokens'
+            participantWaitTime[msg.sender] <= block.timestamp,
+            'Error: participant wait time is not reached'
         );
 
-        tokenInstance.transfer(msg.sender, claimableAmount);
-        participants[msg.sender] = true;
+        tokenInstance.transfer(msg.sender, actualReward);
+        participantWaitTime[msg.sender] = block.timestamp + nextPeriodWaitTime;
     }
 }
