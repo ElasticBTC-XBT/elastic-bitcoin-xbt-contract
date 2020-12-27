@@ -7,18 +7,12 @@ contract AirdropLander {
     using SafeMath for uint256;
 
     ERC20UpgradeSafe public tokenInstance;
-
     uint256 public claimableAmount;
-
     mapping(address => uint256) public participantWaitTime;
-
-    address public owner;
-
-    uint256 public nextPeriodWaitTime; // in sec value
-
-    uint256 public bonusMinRate;
-
-    uint256 public bonusMaxRate;
+    address private owner;
+    uint256 private nextPeriodWaitTime; // in sec value
+    uint256 private bonusMinRate;
+    uint256 private bonusMaxRate;
 
     constructor(
         address _tokenInstance,
@@ -45,7 +39,7 @@ contract AirdropLander {
         setBonusRate(_bonusMinRate, _bonusMaxRate);
     }
 
-    function setBonusRate(uint256 from, uint256 to) private {
+    function setBonusRate(uint256 from, uint256 to) public {
         require(
             owner == msg.sender,
             'Error: only owner can adjust bonus rate'
@@ -61,7 +55,7 @@ contract AirdropLander {
         bonusMaxRate = uint256(to);
     }
 
-    function setNextPeriodWaitTime(uint256 _nextPeriodWaitTime) private {
+    function setNextPeriodWaitTime(uint256 _nextPeriodWaitTime) public {
         require(
             owner == msg.sender,
             'Error: only owner can adjust wait time'
@@ -72,7 +66,7 @@ contract AirdropLander {
         nextPeriodWaitTime = uint256(_nextPeriodWaitTime);
     }
 
-    function setClaimableAmount(uint256 _claimableAmount) private {
+    function setClaimableAmount(uint256 _claimableAmount) public {
         require(
             owner == msg.sender,
             'Error: only owner can adjust claimable amount'
