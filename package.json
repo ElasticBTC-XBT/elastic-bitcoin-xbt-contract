@@ -5,28 +5,29 @@
   "main": "networks.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "compile": "hardhat comile",
-    "truffle:compile": "truffle migrate --reset --compile-all --network=ganache",
-    "deployXBT:ganache": "hardhat deployXBT --network ganache",
-    "deployAirdropLander:ganache": "hardhat deployAirdropLander --network ganache"
+    "truffle:migrate": "truffle migrate --reset --compile-all --network=ganache",
+    "hardhat:compile": "hardhat compile --network ganache",
+    "deployXBT:hardhat": "hardhat deployXBT --network ganache",
+    "deployAirdropLander:hardhat": "hardhat deployAirdropLander --network ganache"
   },
   "author": "",
   "license": "ISC",
   "devDependencies": {
     "@nomiclabs/buidler": "^1.4.8",
-    "@nomiclabs/hardhat-ethers": "^2.0.0",
+    "@nomiclabs/hardhat-ethers": "^2.0.1",
     "@nomiclabs/hardhat-waffle": "^2.0.0",
     "@openzeppelin/buidler-upgrades": "^1.2.1",
     "@openzeppelin/cli": "^2.8.2",
     "chai": "^4.2.0",
     "ethereum-waffle": "^3.1.2",
     "ethers": "^5.0.19",
-    "hardhat": "^2.0.2",
+    "hardhat": "^2.0.6",
     "truffle-hdwallet-provider": "^1.0.17"
   },
   "dependencies": {
     "@nomiclabs/hardhat-web3": "^2.0.0",
     "@openzeppelin/contracts-ethereum-package": "^3.0.0",
+    "@openzeppelin/hardhat-upgrades": "^1.4.3",
     "@openzeppelin/truffle-upgrades": "^1.3.1",
     "@openzeppelin/upgrades": "^2.8.0",
     "@truffle/hdwallet-provider": "^1.1.1",

@@ -1,5 +1,8 @@
 require("@nomiclabs/hardhat-waffle");
 require("@nomiclabs/hardhat-web3");
+require("@nomiclabs/hardhat-ethers");
+require('@openzeppelin/hardhat-upgrades');
+
 
 /**
  * @type import('hardhat/config').HardhatUserConfig
@@ -7,10 +10,12 @@ require("@nomiclabs/hardhat-web3");
 
 async function deployXBT() {
     // We get the contract to deploy
+    const accounts = await web3.eth.getAccounts();
     const xbtContract = await ethers.getContractFactory("XBT");
-    const xbt = await xbtContract.deploy();
+    const xbt = await upgrades.deployProxy(xbtContract, [accounts[0]]);
 
     console.log("XBT deployed to:", xbt.address);
+    console.log("XBT deployed by:", accounts[0]);
 }
 
 task("deployXBT", "Deploy XBT Contract").setAction(async () => {
@@ -29,11 +34,11 @@ task("deployAirdropLander", "Deploy AirdropLander")
     .addParam("address", "The distribution token's address")
     .addParam("claimable", "Claimable amount")
     .setAction(async (taskArgs) => {
-    await deployAirdropLander(taskArgs.address, taskArgs.claimable);
-});
+        await deployAirdropLander(taskArgs.address, taskArgs.claimable);
+    });
 
 module.exports = {
     solidity: "0.6.8",
-    defaultNetwork: "development",
+    defaultNetwork: "ganache",
     networks: require('./networks').networks,
 };
