@@ -433,7 +433,6 @@ contracts/README.md
 allFiredEvents
 .openzeppelin/.session
 
-networks.js
 package-lock.json
 yarn.lock
 truffle-config.js

@@ -5,8 +5,8 @@ module.exports = {
       networkId: 5777
     },
     rinkeby: {
-      url: 'https://rinkeby.infura.io/v3/[]',
+      url: `https://rinkeby.infura.io/v3/${process.env.INFURA_ID}`,
       networkId: 4,
-    }
+    },
   },
 };
