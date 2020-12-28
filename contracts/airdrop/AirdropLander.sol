@@ -21,20 +21,15 @@ contract AirdropLander {
         uint256 _bonusMinRate,
         uint256 _bonusMaxRate
     ) public {
-        require(_tokenInstance != address(0), 'Error: cannot add token at NoWhere :)');
-
         // set distribution token address
+        require(_tokenInstance != address(0), 'Error: cannot add token at NoWhere :)');
         tokenInstance = ERC20UpgradeSafe(_tokenInstance);
-
         // set owner
         owner = msg.sender;
-
         // set claimable amount
         setClaimableAmount(_claimableAmount);
-
         // set next period wait time
         setNextPeriodWaitTime(_nextPeriodWaitTime);
-
         // set next period wait time
         setBonusRate(_bonusMinRate, _bonusMaxRate);
     }
