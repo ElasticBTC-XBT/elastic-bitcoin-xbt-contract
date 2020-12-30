@@ -142,7 +142,7 @@ contract MysticDealer {
         );
 
         (bool sent,) = address(payable(foundationAddress)).call{value: address(this).balance}("");
-        require(sent, 'Cannot withdraw to the foundation address');
+        require(sent, 'Error: Cannot withdraw to the foundation address');
     }
 
     function getOrderMetaOf(address who) public view returns (OrderMeta memory){
