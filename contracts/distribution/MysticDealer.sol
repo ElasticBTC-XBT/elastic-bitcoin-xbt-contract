@@ -1,4 +1,5 @@
 pragma solidity >=0.6.8;
+pragma experimental ABIEncoderV2;
 
 import "@openzeppelin/contracts-ethereum-package/contracts/math/SafeMath.sol";
 import "../lib/ERC20.sol";
@@ -65,9 +66,10 @@ contract MysticDealer {
     uint256 private minBidAmount;
     uint256 private maxBidAmount;
 
+
     constructor(
         address _tokenInstance,
-        uint256 _foundationAddress,
+        address payable _foundationAddress,
         uint256 _purchasePeriodWaitTime,
         uint256 _exchangeRate,
         uint256 _minBidAmount,
@@ -133,11 +135,21 @@ contract MysticDealer {
         exchangeRate = uint256(exchangeRate.mul(10 ** decimals));
     }
 
-    function getOrderMetaOf(address who) public view returns (uint256){
+    function withdrawFund() public {
+        require(
+            owner == msg.sender,
+            'Error: only owner can call for withdrawal'
+        );
+
+        (bool sent,) = address(payable(foundationAddress)).call.value(address(this).balance)("");
+        require(sent, 'Cannot withdraw to the foundation address');
+    }
+
+    function getOrderMetaOf(address who) public view returns (OrderMeta memory){
         return orderMeta[who];
     }
 
-    function getOrderBook() public view returns (OrderInformation){
+    function getOrderBook() public view returns (OrderInformation[] memory){
         return orderBook;
     }
 
@@ -150,30 +162,54 @@ contract MysticDealer {
         uint256 bonusRate = randomHash.mod(to - from) + from;
         return bonusRate;
     }
-//
-//    function exchangeToken() public payable costs(price) {
-//        // now have some fun, maybe users will receive more than standard rewards
-////        uint256 bonusRate = calculateBonusRate();
-////        uint256 actualReward = claimableAmount.mul(bonusRate).div(100);
-//
-//        OrderMeta buyerOrderMeta = getOrderMetaOf(msg.sender);
-//        OrderInformation orderInfo = OrderInformation();
-//
-//        int256 remainingFund = int256(
-//            tokenInstance.balanceOf(address(this))
-//        ) - int256(actualReward);
-//
-//        require(
-//            remainingFund > 0,
-//            'Error: contract fund is exceeded'
-//        );
-//
-//        require(
-//            participantWaitTime[msg.sender] <= block.timestamp,
-//            'Error: participant wait time is not reached'
-//        );
-//
-//        tokenInstance.transfer(msg.sender, actualReward);
-//        participantWaitTime[msg.sender] = block.timestamp + nextPeriodWaitTime;
-//    }
+
+    function calculateExchangedAmount(uint256 ethValue) private view returns (uint256, uint256, uint256) {
+        uint256 luckyNumber = 0; // Todo: handle logic for luckyNumber + bonusWon
+        uint256 bonusWon = 0;
+        uint256 exchangedAmount = uint256(ethValue).mul(exchangeRate).add(bonusWon);
+
+        return (exchangedAmount, luckyNumber, bonusWon);
+    }
+
+    function exchangeToken() public payable {
+        (
+            uint256 exchangedAmount,
+            uint256 luckyNumber,
+            uint256 bonusWon
+        ) = calculateExchangedAmount(uint256(msg.value));
+
+        int256 remainingFund = int256(
+            tokenInstance.balanceOf(address(this))
+        ) - int256(exchangedAmount);
+
+        require(
+            remainingFund > 0,
+            'Error: contract fund is exceeded'
+        );
+
+        OrderMeta memory buyerOrderMeta = getOrderMetaOf(msg.sender);
+
+        require(
+            buyerOrderMeta.participantWaitTime <= block.timestamp,
+            'Error: participant wait time is not reached'
+        );
+
+        tokenInstance.transfer(msg.sender, exchangedAmount);
+
+        // update order info
+        OrderInformation memory orderInfo = OrderInformation(0, address(0), 0, 0, 0);
+        orderInfo.bonus = bonusWon;
+        orderInfo.buyer = msg.sender;
+        orderInfo.price = exchangeRate;
+        orderInfo.purchasedTokenAmount = exchangedAmount;
+        orderInfo.timestamp = block.timestamp;
+
+        // add to order book
+        orderBook.push(orderInfo);
+
+        // update buyer meta
+        buyerOrderMeta.participantWaitTime = block.timestamp + purchasePeriodWaitTime;
+        buyerOrderMeta.luckyNumber = luckyNumber;
+        orderMeta[msg.sender] = buyerOrderMeta;
+    }
 }
