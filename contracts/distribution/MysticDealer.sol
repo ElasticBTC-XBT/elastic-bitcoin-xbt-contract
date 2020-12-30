@@ -141,7 +141,7 @@ contract MysticDealer {
             'Error: only owner can call for withdrawal'
         );
 
-        (bool sent,) = address(payable(foundationAddress)).call.value(address(this).balance)("");
+        (bool sent,) = address(payable(foundationAddress)).call{value: address(this).balance}("");
         require(sent, 'Cannot withdraw to the foundation address');
     }
 
@@ -164,6 +164,9 @@ contract MysticDealer {
     }
 
     function calculateExchangedAmount(uint256 ethValue) private view returns (uint256, uint256, uint256) {
+        require(uint256(ethValue) <= maxBidAmount, 'Error: must be less than max bid amount');
+        require(uint256(ethValue) >= minBidAmount, 'Error: must be greater than min bid amount');
+
         uint256 luckyNumber = 0; // Todo: handle logic for luckyNumber + bonusWon
         uint256 bonusWon = 0;
         uint256 exchangedAmount = uint256(ethValue).mul(exchangeRate).add(bonusWon);
