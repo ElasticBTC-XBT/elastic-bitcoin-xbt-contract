@@ -127,12 +127,11 @@ contract MysticDealer {
         require(uint256(_exchangeRate) > 0, 'Error: exchange rate cannot be zero');
 
         // set data
-        minBidAmount = uint256(_minBidAmount).mul(1 ether);
-        maxBidAmount = uint256(_maxBidAmount).mul(1 ether);
+        minBidAmount = uint256(_minBidAmount);
+        maxBidAmount = uint256(_maxBidAmount);
 
         // number of tokens will be exchanged per 1 ether
-        uint256 decimals = uint256(tokenInstance.decimals());
-        exchangeRate = uint256(exchangeRate.mul(10 ** decimals));
+        exchangeRate = uint256(exchangeRate);
     }
 
     function withdrawFund() public {
