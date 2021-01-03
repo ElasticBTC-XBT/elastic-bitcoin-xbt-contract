@@ -9,14 +9,21 @@ module.exports = {
 
     hardhat_local: {
       url: 'http://127.0.0.1:8545',
+      accounts: [process.env.PRIVATE_KEY],
+       gasPrice: 650000000000,
+
+
     },
 
     
     hardhat: {
       forking: {
         url: `https://eth-mainnet.alchemyapi.io/v2/${process.env.ALCHEMY_ID}`
-        //,      blockNumber: 11095000
-        }
+
+        },
+      gas: 'auto',
+      gasPrice: 'auto',
+      chainId: 1,
     },
     rinkeby: {
       url: `https://rinkeby.infura.io/v3/${process.env.INFURA_ID}`,

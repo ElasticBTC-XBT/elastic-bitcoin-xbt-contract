@@ -226,7 +226,7 @@ contract Policy is OwnableUpgradeSafe {
         // }
         // }
 
-        return reserves1.mul(PRICE_PRECISION).div(reserves0);
+        return reserves0.mul(PRICE_PRECISION).div(reserves1);
     }
 
 
@@ -467,8 +467,8 @@ contract Policy is OwnableUpgradeSafe {
 
         rebaseLag = 8 * 3 * 365; // 8 hours * 3 * 365 days
         minRebaseTimeIntervalSec = 24 * 60 * 60; // 24 hours;
-        rebaseWindowOffsetSec = 0;  //
-        rebaseWindowLengthSec =  8 * 60 * 60;// 8 * 60 * 60 minutes;
+        rebaseWindowOffsetSec = 0;  // no offset
+        rebaseWindowLengthSec =  23 * 60 * 60 + 59 * 60;// 23 hours + 59 minutes
         lastRebaseTimestampSec = 0;
         epoch = 0;
 
