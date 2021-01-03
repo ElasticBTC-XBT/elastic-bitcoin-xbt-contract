@@ -29,7 +29,9 @@ contract MysticDealer {
     /* ************ */
 
     // Transparently store successfully order information
-    OrderInformation[] private orderBook;
+    uint256 latestOrderId;
+    uint256[] private orderBook;
+    mapping(uint256 => OrderInformation) private mappedOrderBook;
 
     // Order meta rules
     mapping(address => OrderMeta) private orderMeta;
@@ -65,6 +67,10 @@ contract MysticDealer {
     // both in ETH value
     uint256 private minBidAmount;
     uint256 private maxBidAmount;
+
+    function generateOrderId() private returns (uint256) {
+        return ++latestOrderId;
+    }
 
     constructor(
         address _tokenInstance,
@@ -209,15 +215,15 @@ contract MysticDealer {
         tokenInstance.transfer(msg.sender, exchangedAmount);
 
         // update order info
-        OrderInformation memory orderInfo = OrderInformation(0, address(0), 0, 0, 0);
-        orderInfo.bonus = bonusWon;
-        orderInfo.buyer = msg.sender;
-        orderInfo.price = exchangeRate;
-        orderInfo.purchasedTokenAmount = exchangedAmount;
-        orderInfo.timestamp = block.timestamp;
+        uint256 orderId = generateOrderId();
+        mappedOrderBook[orderId].bonus = bonusWon;
+        mappedOrderBook[orderId].buyer = msg.sender;
+        mappedOrderBook[orderId].price = exchangeRate;
+        mappedOrderBook[orderId].purchasedTokenAmount = exchangedAmount;
+        mappedOrderBook[orderId].timestamp = block.timestamp;
 
         // add to order book
-        orderBook.push(orderInfo);
+        orderBook.push(orderId);
 
         // update buyer meta
         orderMeta[msg.sender].participantWaitTime = block.timestamp + purchasePeriodWaitTime;
