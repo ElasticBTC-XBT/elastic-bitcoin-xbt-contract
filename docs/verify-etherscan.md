@@ -1,3 +1,3 @@
 ### Verify Etherscan contract
 
-Using `truffle-plugin-verify`
+$ npx oz verify
