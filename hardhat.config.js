@@ -23,6 +23,21 @@ task("deployXBT", "Deploy XBT Contract").setAction(async () => {
     await deployXBT();
 });
 
+
+// async function deployXBTRebaser() {
+//     // We get the contract to deploy
+//     const accounts = await web3.eth.getAccounts();
+//     const xbtContract = await ethers.getContractFactory("XBT");
+//     const xbt = await upgrades.deployProxy(xbtContract, [accounts[0]]);
+
+//     console.log("XBT deployed to:", xbt.address);
+//     console.log("XBT deployed by:", accounts[0]);
+// }
+
+// task("deployXBTRebaser", "Deploy XBT Rebaser").setAction(async () => {
+//     await deployXBTRebaser();
+// });
+
 async function deployAirdropLander(
     dTokenAddress,
     claimableAmount,
