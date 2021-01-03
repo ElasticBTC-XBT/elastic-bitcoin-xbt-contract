@@ -169,18 +169,17 @@ contract MysticDealer {
 
         uint256 luckyNumber = getRandom(0,100); // luckyNumber is a random number from 0,100
         uint256 bonusWon = 0;
-        
+
         uint256 winPercentage = ethValue.div(1 ether).mul(100); // 0.01 eth = 1 ticket (1% winning rate)
         if (winPercentage > 17){
             winPercentage = 17;
         }
-        
+
         if (winPercentage <= luckyNumber){
             // user wins the lottery, get double return
             bonusWon = uint256(ethValue).mul(exchangeRate);
         }
-        
-        
+
         uint256 exchangedAmount = uint256(ethValue).mul(exchangeRate).add(bonusWon);
 
         return (exchangedAmount, luckyNumber, bonusWon);
