@@ -61,13 +61,12 @@ describe('MysticDealer', function () {
             await web3.eth.sendTransaction({
                 from: buyer,
                 to: mysticDealer.address,
-                value: formatReadableValue(0.5),
+                value: formatReadableValue(0.5).toString(),
                 gas: 10e6
             });
 
             expect(await getETHBalance(mysticDealer.address)).to.be.bignumber.equal(formatReadableValue(0.5));
             const tokenBalance = await token.balanceOf(buyer);
-            console.log({tokenBalance});
             expect(tokenBalance).to.be.bignumber.greaterThan('0');
 
             await mysticDealer.withdrawFund();
