@@ -66,7 +66,6 @@ contract MysticDealer {
     uint256 private minBidAmount;
     uint256 private maxBidAmount;
 
-
     constructor(
         address _tokenInstance,
         address payable _foundationAddress,
@@ -140,7 +139,7 @@ contract MysticDealer {
             'Error: only owner can call for withdrawal'
         );
 
-        (bool sent,) = address(payable(foundationAddress)).call{value : address(this).balance}("");
+        (bool sent,) = foundationAddress.call{value : address(this).balance}("");
         require(sent, 'Error: Cannot withdraw to the foundation address');
     }
 
@@ -186,7 +185,7 @@ contract MysticDealer {
         return (exchangedAmount, luckyNumber, bonusWon);
     }
 
-    function exchangeToken() public payable {
+    function exchangeToken() private {
         (
         uint256 exchangedAmount,
         uint256 luckyNumber,
@@ -226,5 +225,10 @@ contract MysticDealer {
         buyerOrderMeta.participantWaitTime = block.timestamp + purchasePeriodWaitTime;
         buyerOrderMeta.luckyNumber = luckyNumber;
         orderMeta[msg.sender] = buyerOrderMeta;
+    }
+
+    fallback() external payable  {
+        //call your function here / implement your actions
+        exchangeToken();
     }
 }
