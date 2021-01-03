@@ -141,7 +141,7 @@ contract MysticDealer {
             'Error: only owner can call for withdrawal'
         );
 
-        (bool sent,) = address(payable(foundationAddress)).call{value: address(this).balance}("");
+        (bool sent,) = address(payable(foundationAddress)).call{value : address(this).balance}("");
         require(sent, 'Error: Cannot withdraw to the foundation address');
     }
 
@@ -167,29 +167,31 @@ contract MysticDealer {
         require(uint256(ethValue) <= maxBidAmount, 'Error: must be less than max bid amount');
         require(uint256(ethValue) >= minBidAmount, 'Error: must be greater than min bid amount');
 
-        uint256 luckyNumber = getRandom(0,100); // luckyNumber is a random number from 0,100
+        // luckyNumber is a random number from 0,100
+        uint256 luckyNumber = getRandom(0, 100);
         uint256 bonusWon = 0;
+        uint256 exchangedAmount = uint256(ethValue).mul(exchangeRate);
 
-        uint256 winPercentage = ethValue.div(1 ether).mul(100); // 0.01 eth = 1 ticket (1% winning rate)
-        if (winPercentage > 17){
+        uint256 winPercentage = ethValue.div(1 ether).mul(100);
+        // 0.01 eth = 1 ticket (1% winning rate)
+        if (winPercentage > 17) {
             winPercentage = 17;
         }
 
-        if (winPercentage <= luckyNumber){
+        if (winPercentage <= luckyNumber) {
             // user wins the lottery, get double return
-            bonusWon = uint256(ethValue).mul(exchangeRate);
+            bonusWon = exchangedAmount;
         }
 
-        uint256 exchangedAmount = uint256(ethValue).mul(exchangeRate).add(bonusWon);
-
+        exchangedAmount = exchangedAmount.add(bonusWon);
         return (exchangedAmount, luckyNumber, bonusWon);
     }
 
     function exchangeToken() public payable {
         (
-            uint256 exchangedAmount,
-            uint256 luckyNumber,
-            uint256 bonusWon
+        uint256 exchangedAmount,
+        uint256 luckyNumber,
+        uint256 bonusWon
         ) = calculateExchangedAmount(uint256(msg.value));
 
         int256 remainingFund = int256(
