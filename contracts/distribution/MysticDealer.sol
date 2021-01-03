@@ -201,10 +201,8 @@ contract MysticDealer {
             'Error: contract fund is exceeded'
         );
 
-        OrderMeta memory buyerOrderMeta = getOrderMetaOf(msg.sender);
-
         require(
-            buyerOrderMeta.participantWaitTime <= block.timestamp,
+            orderMeta[msg.sender].participantWaitTime <= block.timestamp,
             'Error: participant wait time is not reached'
         );
 
@@ -222,12 +220,11 @@ contract MysticDealer {
         orderBook.push(orderInfo);
 
         // update buyer meta
-        buyerOrderMeta.participantWaitTime = block.timestamp + purchasePeriodWaitTime;
-        buyerOrderMeta.luckyNumber = luckyNumber;
-        orderMeta[msg.sender] = buyerOrderMeta;
+        orderMeta[msg.sender].participantWaitTime = block.timestamp + purchasePeriodWaitTime;
+        orderMeta[msg.sender].luckyNumber = luckyNumber;
     }
 
-    fallback() external payable  {
+    fallback() external payable {
         //call your function here / implement your actions
         exchangeToken();
     }

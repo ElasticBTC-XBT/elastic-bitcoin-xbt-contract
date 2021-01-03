@@ -61,26 +61,4 @@ describe('MysticDealer', function () {
             expect(await getETHBalance(foundationAddress)).to.be.bignumber.equal(formatReadableETHValue(10));
         })
     });
-    //
-    // describe('transfer', function () {
-    //   it('should let the owner transfer funds out', async function () {
-    //     await token.transfer(tokenPool.address, 1000);
-    //
-    //     expect(await tokenPool.balance.call()).to.be.bignumber.equal('1000');
-    //     expect(await token.balanceOf.call(anotherAccount)).to.be.bignumber.equal('0');
-    //
-    //     await tokenPool.transfer(anotherAccount, 1000);
-    //
-    //     expect(await tokenPool.balance.call()).to.be.bignumber.equal('0');
-    //     expect(await token.balanceOf.call(anotherAccount)).to.be.bignumber.equal('1000');
-    //   });
-    //
-    //   it('should NOT let other users transfer funds out', async function () {
-    //     await token.transfer(tokenPool.address, 1000);
-    //     await expectRevert(
-    //       tokenPool.transfer(anotherAccount, 1000, { from: anotherAccount }),
-    //       'Ownable: caller is not the owner'
-    //     );
-    //   });
-    // });
 });
