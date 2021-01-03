@@ -76,7 +76,7 @@ task("deployAirdropLander", "Deploy AirdropLander")
     });
 
 module.exports = {
-    solidity: "0.6.8",
+    solidity: "0.7.3",
     defaultNetwork: "ganache",
     networks: require('./networks').networks,
 };

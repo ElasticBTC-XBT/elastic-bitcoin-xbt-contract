@@ -7,7 +7,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "truffle:migrate": "truffle migrate --reset --compile-all --network=ganache",
     "truffle:migrate:mainnet": "truffle migrate -f 2 --to 2 --network=mainnet",
-    "hardhat:start":"npx hardhat node --network hardhat",
+    "hardhat:start": "npx hardhat node --network hardhat",
     "oz_deploy": "npx openzeppelin deploy",
     "hardhat:compile": "hardhat compile --network ganache",
     "deployXBT:hardhat": "hardhat deployXBT --network ganache",
@@ -25,7 +25,8 @@
     "ethereum-waffle": "^3.1.2",
     "ethers": "^5.0.19",
     "hardhat": "^2.0.6",
-    "truffle-hdwallet-provider": "^1.0.17"
+    "truffle-hdwallet-provider": "^1.0.17",
+    "truffle-plugin-verify": "^0.5.4"
   },
   "dependencies": {
     "@nomiclabs/hardhat-web3": "^2.0.0",
