@@ -3,12 +3,12 @@ const { GSNDevProvider } = require('@openzeppelin/gsn-provider');
 module.exports = {
   accounts: {
     amount: 10, // Number of unlocked accounts
-    ether: 10000, // Initial balance of unlocked accounts (in ether)
+    ether: 100, // Initial balance of unlocked accounts (in ether)
   },
 
   contracts: {
     type: 'truffle', // Contract abstraction to use: 'truffle' for @truffle/contract or 'web3' for web3-eth-contract
-    defaultGas: 11e9, // Maximum gas for contract calls (when unspecified)
+    defaultGas: 10e6, // Maximum gas for contract calls (when unspecified)
 
     // Options available since v0.1.2
     defaultGasPrice: 20e10, // Gas price for contract calls (when unspecified)
@@ -16,7 +16,7 @@ module.exports = {
   },
 
   node: { // Options passed directly to Ganache client
-    gasLimit: 11e9, // Maximum gas per block
+    gasLimit: 10e6, // Maximum gas per block
     gasPrice: 20e10 // Sets the default gas price for transactions if not otherwise specified.
   },
 

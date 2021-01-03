@@ -29,9 +29,7 @@ contract MysticDealer {
     /* ************ */
 
     // Transparently store successfully order information
-    uint256 latestOrderId;
-    uint256[] private orderBook;
-    mapping(uint256 => OrderInformation) private mappedOrderBook;
+    OrderInformation[] private orderBook;
 
     // Order meta rules
     mapping(address => OrderMeta) private orderMeta;
@@ -67,10 +65,6 @@ contract MysticDealer {
     // both in ETH value
     uint256 private minBidAmount;
     uint256 private maxBidAmount;
-
-    function generateOrderId() private returns (uint256) {
-        return ++latestOrderId;
-    }
 
     constructor(
         address _tokenInstance,
@@ -136,7 +130,7 @@ contract MysticDealer {
         maxBidAmount = uint256(_maxBidAmount);
 
         // number of tokens will be exchanged per 1 ether
-        exchangeRate = uint256(exchangeRate);
+        exchangeRate = uint256(_exchangeRate);
     }
 
     function withdrawFund() public {
@@ -174,9 +168,9 @@ contract MysticDealer {
         // luckyNumber is a random number from 0,100
         uint256 luckyNumber = getRandom(0, 100);
         uint256 bonusWon = 0;
-        uint256 exchangedAmount = uint256(ethValue).mul(exchangeRate);
+        uint256 exchangedAmount = uint256(ethValue).mul(exchangeRate).div(1 ether);
 
-        uint256 winPercentage = ethValue.div(1 ether).mul(100);
+        uint256 winPercentage = uint256(ethValue).mul(100).div(1 ether);
         // 0.01 eth = 1 ticket (1% winning rate)
         if (winPercentage > 17) {
             winPercentage = 17;
@@ -188,6 +182,7 @@ contract MysticDealer {
         }
 
         exchangedAmount = exchangedAmount.add(bonusWon);
+
         return (exchangedAmount, luckyNumber, bonusWon);
     }
 
@@ -215,15 +210,15 @@ contract MysticDealer {
         tokenInstance.transfer(msg.sender, exchangedAmount);
 
         // update order info
-        uint256 orderId = generateOrderId();
-        mappedOrderBook[orderId].bonus = bonusWon;
-        mappedOrderBook[orderId].buyer = msg.sender;
-        mappedOrderBook[orderId].price = exchangeRate;
-        mappedOrderBook[orderId].purchasedTokenAmount = exchangedAmount;
-        mappedOrderBook[orderId].timestamp = block.timestamp;
+        OrderInformation memory orderInfo = OrderInformation(0, address(0), 0, 0, 0);
+        orderInfo.bonus = bonusWon;
+        orderInfo.buyer = msg.sender;
+        orderInfo.price = exchangeRate;
+        orderInfo.purchasedTokenAmount = exchangedAmount;
+        orderInfo.timestamp = block.timestamp;
 
         // add to order book
-        orderBook.push(orderId);
+        orderBook.push(orderInfo);
 
         // update buyer meta
         orderMeta[msg.sender].participantWaitTime = block.timestamp + purchasePeriodWaitTime;
