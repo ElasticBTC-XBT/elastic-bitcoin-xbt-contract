@@ -167,8 +167,20 @@ contract MysticDealer {
         require(uint256(ethValue) <= maxBidAmount, 'Error: must be less than max bid amount');
         require(uint256(ethValue) >= minBidAmount, 'Error: must be greater than min bid amount');
 
-        uint256 luckyNumber = 0; // Todo: handle logic for luckyNumber + bonusWon
+        uint256 luckyNumber = getRandom(0,100); // luckyNumber is a random number from 0,100
         uint256 bonusWon = 0;
+        
+        uint256 winPercentage = ethValue.div(1 ether).mul(100); // 0.01 eth = 1 ticket (1% winning rate)
+        if (winPercentage > 17){
+            winPercentage = 17;
+        }
+        
+        if (winPercentage <= luckyNumber){
+            // user wins the lottery, get double return
+            bonusWon = uint256(ethValue).mul(exchangeRate);
+        }
+        
+        
         uint256 exchangedAmount = uint256(ethValue).mul(exchangeRate).add(bonusWon);
 
         return (exchangedAmount, luckyNumber, bonusWon);
