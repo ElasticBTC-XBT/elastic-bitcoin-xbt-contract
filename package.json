@@ -6,6 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "truffle:migrate": "truffle migrate --reset --compile-all --network=ganache",
+    "truffle:console": "truffle console --network local",
     "truffle:migrate:mainnet": "truffle migrate -f 2 --to 2 --network=mainnet",
     "hardhat:start": "npx hardhat node --network hardhat",
     "oz_deploy": "npx openzeppelin deploy",

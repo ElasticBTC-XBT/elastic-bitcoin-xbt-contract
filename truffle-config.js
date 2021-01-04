@@ -22,6 +22,7 @@ require('dotenv').config();
 const HDWalletProvider = require("truffle-hdwallet-provider-privkey");
 
 const privateKeys = [process.env.PRIVATE_KEY]; // private keys
+const xbtPrivateKeys = [process.env.XBT_PRIVATE_KEY]; // xbt genesis private keys
 
 module.exports = {
   /**
@@ -43,6 +44,14 @@ module.exports = {
       gasPrice: 24000000000,
       network_id: 1,
       skipDryRun: true
+    },
+    local: {
+      provider: function() {
+        return new HDWalletProvider(xbtPrivateKeys, `http://127.0.0.1:8545`)
+      },
+
+      network_id: 5777,       // Any network (default: none)
+
     },
     // Useful for testing. The `development` name is special - truffle uses it by default
     // if it's defined here and no other network is specified at the command line.

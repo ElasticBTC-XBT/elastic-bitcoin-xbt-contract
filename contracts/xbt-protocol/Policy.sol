@@ -442,8 +442,8 @@ contract Policy is OwnableUpgradeSafe {
         external
         onlyOwner
     {
-        require(minRebaseTimeIntervalSec_ > 0);
-        require(rebaseWindowOffsetSec_ < minRebaseTimeIntervalSec_);
+        require(minRebaseTimeIntervalSec_ > 0,"minRebaseTimeIntervalSec_ > 0");
+        require(rebaseWindowOffsetSec_ < minRebaseTimeIntervalSec_,"rebaseWindowOffsetSec_ < minRebaseTimeIntervalSec_");
 
         minRebaseTimeIntervalSec = minRebaseTimeIntervalSec_;
         rebaseWindowOffsetSec = rebaseWindowOffsetSec_;
@@ -465,7 +465,7 @@ contract Policy is OwnableUpgradeSafe {
         // deviationThreshold = 0.05e8 = 5e6
         deviationThreshold = 5 * 10 ** (DECIMALS-2);
 
-        rebaseLag = 8 * 3 * 365; // 8 hours * 3 * 365 days
+        rebaseLag =  365; //  365 days
         minRebaseTimeIntervalSec = 24 * 60 * 60; // 24 hours;
         rebaseWindowOffsetSec = 0;  // no offset
         rebaseWindowLengthSec =  23 * 60 * 60 + 59 * 60;// 23 hours + 59 minutes
@@ -473,6 +473,7 @@ contract Policy is OwnableUpgradeSafe {
         epoch = 0;
 
         XBTs = XBTs_;
+        _pairXBTWBTC = IUniswapV2Pair(UniswapV2Library.pairFor(0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f, 0x64fB96d0395f6bf105F35233911e3dF2C5bf4Ce8, 0x2260fac5e5542a773aa44fbcfedf7c193bc2c599));
 
     }
 
