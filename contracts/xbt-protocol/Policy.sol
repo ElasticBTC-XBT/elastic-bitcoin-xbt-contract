@@ -465,7 +465,7 @@ contract Policy is OwnableUpgradeSafe {
         // deviationThreshold = 0.05e8 = 5e6
         deviationThreshold = 5 * 10 ** (DECIMALS-2);
 
-        rebaseLag =  365; //  365 days
+        rebaseLag =  100; //  100 days
         minRebaseTimeIntervalSec = 24 * 60 * 60; // 24 hours;
         rebaseWindowOffsetSec = 0;  // no offset
         rebaseWindowLengthSec =  23 * 60 * 60 + 59 * 60;// 23 hours + 59 minutes
@@ -473,7 +473,7 @@ contract Policy is OwnableUpgradeSafe {
         epoch = 0;
 
         XBTs = XBTs_;
-        _pairXBTWBTC = IUniswapV2Pair(UniswapV2Library.pairFor(0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f, 0x64fB96d0395f6bf105F35233911e3dF2C5bf4Ce8, 0x2260fac5e5542a773aa44fbcfedf7c193bc2c599));
+        _pairXBTWBTC = IUniswapV2Pair(UniswapV2Library.pairFor(0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f, 0x64fB96d0395f6bf105F35233911e3dF2C5bf4Ce8, 0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599));
 
     }
 
