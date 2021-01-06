@@ -19,11 +19,9 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - uses: codecov/codecov-action@v1
       - name: Unit test for smart contracts at NodeJs ${{ matrix.node-version }}
         uses: actions/setup-node@v1
         with:
           node-version: ${{ matrix.node-version }}
-          files: coverage.json
       - run: npm install
       - run: npm run test-coverage
