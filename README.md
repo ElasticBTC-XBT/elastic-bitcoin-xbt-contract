@@ -9,6 +9,7 @@ Implementation of [Elastic Bitcoin (XBT)](https://elasticbitcoin.org/)
 The official XBT contract addresses are (by target):
 - UniswapV2: [0x64fb96d0395f6bf105f35233911e3df2c5bf4ce8](https://info.uniswap.org/token/0x64fb96d0395f6bf105f35233911e3df2c5bf4ce8)
 - Etherscan: [0x64fB96d0395f6bf105F35233911e3dF2C5bf4Ce8](https://etherscan.io/token/0x64fB96d0395f6bf105F35233911e3dF2C5bf4Ce8)
+- Airdrop: [0x2cb3c989d47a87a2bf1a49b9868b1ea533570e2c](https://etherscan.io/address/0x2cb3c989d47a87a2bf1a49b9868b1ea533570e2c)
 
 ## Table of Contents
 
