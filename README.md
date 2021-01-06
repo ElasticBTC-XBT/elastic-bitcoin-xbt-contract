@@ -1,6 +1,6 @@
 # XBT Smart Contracts
 
-[![Build Status](https://github.com/ElasticBTC-XBT/elastic-bitcoin-xbt-contract/workflows/XBT%20Smart%20Contracts/badge.svg)](https://github.com/ElasticBTC-XBT/elastic-bitcoin-xbt-contract)&nbsp;&nbsp;[![Coverage Status](https://app.codecov.io/gh/ElasticBTC-XBT/elastic-bitcoin-xbt-contract/graph/badge.svg)](https://app.codecov.io/gh/ElasticBTC-XBT/elastic-bitcoin-xbt-contract/)
+[![Build Status](https://github.com/ElasticBTC-XBT/elastic-bitcoin-xbt-contract/workflows/XBT%20Smart%20Contracts/badge.svg)](https://github.com/ElasticBTC-XBT/elastic-bitcoin-xbt-contract)&nbsp;&nbsp;[![Coverage Status](https://codecov.io/gh/ElasticBTC-XBT/elastic-bitcoin-xbt-contract/graph/badge.svg)](https://app.codecov.io/gh/ElasticBTC-XBT/elastic-bitcoin-xbt-contract/)
 
 Smart Contracts repository for Elastic Bitcoin (XBT)
 
