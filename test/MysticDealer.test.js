@@ -1,8 +1,8 @@
-
 const {contract, web3} = require('@openzeppelin/test-environment');
-const {BN, balance} = require('@openzeppelin/test-helpers');
+const {expectRevert} = require('@openzeppelin/test-helpers');
 const {expect} = require('chai');
 const moment = require("moment");
+const {getETHBalance, formatReadableValue} = require("./helpers");
 
 const _require = require('app-root-path').require;
 const BlockchainCaller = _require('/util/blockchain_caller');
@@ -11,22 +11,7 @@ const chain = new BlockchainCaller(web3);
 const MockERC20 = contract.fromArtifact('MockERC20');
 const MysticDealer = contract.fromArtifact('MysticDealer');
 
-let token, otherToken, mysticDealer, owner, anotherAccount, foundationWallet, buyer, anotherBuyer;
-
-const formatReadableValue = (readableValue) =>
-    new BN(
-        (Number(readableValue) * (10 ** 18)).toString()
-    ).toString();
-
-const getETHBalance = (address) => new Promise(async (resolve, reject) => {
-    try {
-        const currentBalancePromise = await balance.tracker(address);
-        const currentBalance = await currentBalancePromise.get();
-        return resolve(currentBalance);
-    } catch (err) {
-        return reject(err);
-    }
-})
+let token, otherToken, mysticDealer, owner, anotherAccount, foundationWallet, buyer, anotherBuyer, anotherAccount2;
 
 describe('MysticDealer', function () {
     beforeEach('setup contracts', async function () {
@@ -35,6 +20,7 @@ describe('MysticDealer', function () {
         buyer = web3.utils.toChecksumAddress(accounts[4]);
         anotherBuyer = web3.utils.toChecksumAddress(accounts[6]);
         anotherAccount = web3.utils.toChecksumAddress(accounts[5]);
+        anotherAccount2 = web3.utils.toChecksumAddress(accounts[7]);
         foundationWallet = web3.eth.accounts.create();
 
         token = await MockERC20.new(4000);
@@ -48,13 +34,13 @@ describe('MysticDealer', function () {
             formatReadableValue(0.05), // 0.05 E
             formatReadableValue(0.5) // 0.5 E
         );
-        await token.transfer(mysticDealer.address, 2000);
+        await token.transfer(mysticDealer.address, 200);
     });
 
     describe('mystic dealer major flows', async function () {
-        it('should return the balance of the mystic dealer', async function () {
+        it('should: return the balance of the mystic dealer', async function () {
             await token.transfer(mysticDealer.address, 2000);
-            expect(await token.balanceOf(mysticDealer.address)).to.be.bignumber.equal('4000'); // 2000 at beforeEach and 2000 at runtime testing
+            expect(await token.balanceOf(mysticDealer.address)).to.be.bignumber.equal('2200'); // 2000 at beforeEach and 200 at runtime testing
             expect(await otherToken.balanceOf(mysticDealer.address)).to.be.bignumber.equal('0');
         });
 
@@ -70,12 +56,12 @@ describe('MysticDealer', function () {
             const tokenBalance = await token.balanceOf(buyer);
 
             expect(
-                tokenBalance.toString() === '100'  ||
+                tokenBalance.toString() === '100' ||
                 tokenBalance.toString() === '50'
             ).to.be.true;
         })
 
-        it('should let the owner transfer the funds out', async function () {
+        it('should: let the owner transfer the funds out', async function () {
             await web3.eth.sendTransaction({
                 from: buyer,
                 to: mysticDealer.address,
@@ -89,7 +75,7 @@ describe('MysticDealer', function () {
             expect(await getETHBalance(foundationWallet.address)).to.be.bignumber.equal(formatReadableValue(0.5));
         })
 
-        it('should: lucky number is calculated and participated time was recorded', async function() {
+        it('should: lucky number is calculated and participated time was recorded', async function () {
             await web3.eth.sendTransaction({
                 from: buyer,
                 to: mysticDealer.address,
@@ -105,21 +91,21 @@ describe('MysticDealer', function () {
 
             const now = moment();
             const participateDate = moment(Number(participantWaitTime) * 1000);
-            expect(participateDate.diff(now, 'second')).to.be.equal(59); // 60 secs minus 1 sec for smartcontract call
+            expect(participateDate.diff(now, 'minute')).to.be.equal(0);
         });
 
-        it('should: order is recorded with proper information', async function() {
+        it('should: order is recorded with proper information', async function () {
             await web3.eth.sendTransaction({
                 from: buyer,
                 to: mysticDealer.address,
-                value: formatReadableValue(0.5),
+                value: formatReadableValue(0.1),
                 gas: 10e6
             });
 
             await web3.eth.sendTransaction({
                 from: anotherBuyer,
                 to: mysticDealer.address,
-                value: formatReadableValue(0.5),
+                value: formatReadableValue(0.1),
                 gas: 10e6
             });
 
@@ -141,4 +127,70 @@ describe('MysticDealer', function () {
             expect(!!timeStamp2 && !!bonusWon2 && !!purchasedTokenAmount2).to.be.true;
         })
     });
+
+
+    describe('mystic dealer handles major sale rules', function () {
+        it('should: reject if participant wait time is not reached', async function () {
+            // send the first time
+            await web3.eth.sendTransaction({
+                from: buyer,
+                to: mysticDealer.address,
+                value: formatReadableValue(0.1),
+                gas: 10e6
+            });
+
+            // send the second time should be rejected
+            await expectRevert(
+                web3.eth.sendTransaction({
+                    from: buyer,
+                    to: mysticDealer.address,
+                    value: formatReadableValue(0.5),
+                    gas: 10e6
+                }),
+                'Error: participant wait time is not reached'
+            )
+        });
+
+        it('should: reject if the contract fund is exceed', async function () {
+            await web3.eth.sendTransaction({
+                from: owner,
+                to: mysticDealer.address,
+                value: formatReadableValue(0.25),
+                gas: 10e6
+            });
+
+            await web3.eth.sendTransaction({
+                from: buyer,
+                to: mysticDealer.address,
+                value: formatReadableValue(0.25),
+                gas: 10e6
+            });
+
+            await web3.eth.sendTransaction({
+                from: anotherBuyer,
+                to: mysticDealer.address,
+                value: formatReadableValue(0.3),
+                gas: 10e6
+            });
+
+            // send the second time should be rejected
+            await expectRevert(
+                Promise.all([
+                    web3.eth.sendTransaction({
+                        from: anotherAccount2,
+                        to: mysticDealer.address,
+                        value: formatReadableValue(0.5),
+                        gas: 10e6
+                    }),
+                    web3.eth.sendTransaction({
+                        from: anotherAccount,
+                        to: mysticDealer.address,
+                        value: formatReadableValue(0.5),
+                        gas: 10e6
+                    })
+                ]),
+                'Error: contract fund is exceeded'
+            )
+        });
+    })
 });

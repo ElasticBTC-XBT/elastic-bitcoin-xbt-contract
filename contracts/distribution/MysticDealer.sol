@@ -198,7 +198,7 @@ contract MysticDealer {
         ) - int256(exchangedAmount);
 
         require(
-            remainingFund > 0,
+            remainingFund >= 0,
             'Error: contract fund is exceeded'
         );
 
