@@ -14,7 +14,7 @@ let token, otherToken, mysticDealer, owner, anotherAccount, foundationWallet, bu
 const formatReadableValue = (readableValue) =>
     new BN(
         (Number(readableValue) * (10 ** 18)).toString()
-    );
+    ).toString();
 
 const getETHBalance = (address) => new Promise(async (resolve, reject) => {
     try {
@@ -45,29 +45,40 @@ describe('MysticDealer', function () {
             formatReadableValue(0.05), // 0.05 E
             formatReadableValue(0.5) // 0.5 E
         );
+        await token.transfer(mysticDealer.address, 2000);
     });
 
-    describe('balance of mystic dealer', function () {
+    describe('balance of mystic dealer', async function () {
         it('should return the balance of the mystic dealer', async function () {
-            await token.transfer(anotherAccount, 123);
-            expect(await token.balanceOf(anotherAccount)).to.be.bignumber.equal('123');
-            expect(await otherToken.balanceOf(anotherAccount)).to.be.bignumber.equal('0');
+            await token.transfer(mysticDealer.address, 2000);
+            expect(await token.balanceOf(mysticDealer.address)).to.be.bignumber.equal('4000'); // 2000 at beforeEach and 2000 at runtime testing
+            expect(await otherToken.balanceOf(mysticDealer.address)).to.be.bignumber.equal('0');
         });
 
-        it('should let the owner transfer the funds out', async function () {
-            await token.transfer(mysticDealer.address, 2000);
-            expect(await token.balanceOf(mysticDealer.address)).to.be.bignumber.equal('2000');
-
+        it('should: buyer transfers some ETHs and get XBTs back', async function () {
             await web3.eth.sendTransaction({
                 from: buyer,
                 to: mysticDealer.address,
-                value: formatReadableValue(0.5).toString(),
+                value: formatReadableValue(0.5),
                 gas: 10e6
             });
 
             expect(await getETHBalance(mysticDealer.address)).to.be.bignumber.equal(formatReadableValue(0.5));
             const tokenBalance = await token.balanceOf(buyer);
-            expect(tokenBalance).to.be.bignumber.greaterThan('0');
+
+            expect(
+                tokenBalance.toString() === '100'  ||
+                tokenBalance.toString() === '50'
+            ).to.be.true;
+        })
+
+        it('should let the owner transfer the funds out', async function () {
+            await web3.eth.sendTransaction({
+                from: buyer,
+                to: mysticDealer.address,
+                value: formatReadableValue(0.5),
+                gas: 10e6
+            });
 
             await mysticDealer.withdrawFund();
 
