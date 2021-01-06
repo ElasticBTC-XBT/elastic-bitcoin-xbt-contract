@@ -2,7 +2,6 @@ const {contract, web3} = require('@openzeppelin/test-environment');
 const {expectRevert} = require('@openzeppelin/test-helpers');
 const {expect} = require('chai');
 const moment = require("moment");
-const {formatReadableValue} = require("./helpers");
 
 const _require = require('app-root-path').require;
 const BlockchainCaller = _require('/util/blockchain_caller');

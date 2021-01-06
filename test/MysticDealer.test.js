@@ -2,7 +2,7 @@ const {contract, web3} = require('@openzeppelin/test-environment');
 const {expectRevert} = require('@openzeppelin/test-helpers');
 const {expect} = require('chai');
 const moment = require("moment");
-const {getETHBalance, formatReadableValue} = require("./helpers");
+const {getETHBalance, formatReadableValue} = require("../util/helpers");
 
 const _require = require('app-root-path').require;
 const BlockchainCaller = _require('/util/blockchain_caller');
@@ -11,7 +11,7 @@ const chain = new BlockchainCaller(web3);
 const MockERC20 = contract.fromArtifact('MockERC20');
 const MysticDealer = contract.fromArtifact('MysticDealer');
 
-let token, otherToken, mysticDealer, owner, anotherAccount, foundationWallet, buyer, anotherBuyer, anotherAccount2;
+let token, otherToken, mysticDealer, owner, anotherAccount, foundationWallet, buyer, anotherBuyer, anotherAccount3, anotherAccount2;
 
 describe('MysticDealer', function () {
     beforeEach('setup contracts', async function () {
@@ -21,6 +21,7 @@ describe('MysticDealer', function () {
         anotherBuyer = web3.utils.toChecksumAddress(accounts[6]);
         anotherAccount = web3.utils.toChecksumAddress(accounts[5]);
         anotherAccount2 = web3.utils.toChecksumAddress(accounts[7]);
+        anotherAccount3 = web3.utils.toChecksumAddress(accounts[3]);
         foundationWallet = web3.eth.accounts.create();
 
         token = await MockERC20.new(4000);
@@ -184,6 +185,12 @@ describe('MysticDealer', function () {
                     }),
                     web3.eth.sendTransaction({
                         from: anotherAccount,
+                        to: mysticDealer.address,
+                        value: formatReadableValue(0.5),
+                        gas: 10e6
+                    }),
+                    web3.eth.sendTransaction({
+                        from: anotherAccount3,
                         to: mysticDealer.address,
                         value: formatReadableValue(0.5),
                         gas: 10e6
