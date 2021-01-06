@@ -1,6 +1,8 @@
+
 const {contract, web3} = require('@openzeppelin/test-environment');
 const {BN, balance} = require('@openzeppelin/test-helpers');
 const {expect} = require('chai');
+const moment = require("moment");
 
 const _require = require('app-root-path').require;
 const BlockchainCaller = _require('/util/blockchain_caller');
@@ -9,7 +11,7 @@ const chain = new BlockchainCaller(web3);
 const MockERC20 = contract.fromArtifact('MockERC20');
 const MysticDealer = contract.fromArtifact('MysticDealer');
 
-let token, otherToken, mysticDealer, owner, anotherAccount, foundationWallet, buyer;
+let token, otherToken, mysticDealer, owner, anotherAccount, foundationWallet, buyer, anotherBuyer;
 
 const formatReadableValue = (readableValue) =>
     new BN(
@@ -31,6 +33,7 @@ describe('MysticDealer', function () {
         const accounts = await chain.getUserAccounts();
         owner = web3.utils.toChecksumAddress(accounts[0]);
         buyer = web3.utils.toChecksumAddress(accounts[4]);
+        anotherBuyer = web3.utils.toChecksumAddress(accounts[6]);
         anotherAccount = web3.utils.toChecksumAddress(accounts[5]);
         foundationWallet = web3.eth.accounts.create();
 
@@ -48,7 +51,7 @@ describe('MysticDealer', function () {
         await token.transfer(mysticDealer.address, 2000);
     });
 
-    describe('balance of mystic dealer', async function () {
+    describe('mystic dealer major flows', async function () {
         it('should return the balance of the mystic dealer', async function () {
             await token.transfer(mysticDealer.address, 2000);
             expect(await token.balanceOf(mysticDealer.address)).to.be.bignumber.equal('4000'); // 2000 at beforeEach and 2000 at runtime testing
@@ -84,6 +87,58 @@ describe('MysticDealer', function () {
 
             expect(await getETHBalance(mysticDealer.address)).to.be.bignumber.equal('0');
             expect(await getETHBalance(foundationWallet.address)).to.be.bignumber.equal(formatReadableValue(0.5));
+        })
+
+        it('should: lucky number is calculated and participated time was recorded', async function() {
+            await web3.eth.sendTransaction({
+                from: buyer,
+                to: mysticDealer.address,
+                value: formatReadableValue(0.5),
+                gas: 10e6
+            });
+
+            const orderMeta = await mysticDealer.getOrderMetaOf(buyer);
+
+            const [luckyNumber, participantWaitTime] = orderMeta;
+
+            expect(!!luckyNumber).to.be.true; // expect the lucky number is calculated
+
+            const now = moment();
+            const participateDate = moment(Number(participantWaitTime) * 1000);
+            expect(participateDate.diff(now, 'second')).to.be.equal(59); // 60 secs minus 1 sec for smartcontract call
+        });
+
+        it('should: order is recorded with proper information', async function() {
+            await web3.eth.sendTransaction({
+                from: buyer,
+                to: mysticDealer.address,
+                value: formatReadableValue(0.5),
+                gas: 10e6
+            });
+
+            await web3.eth.sendTransaction({
+                from: anotherBuyer,
+                to: mysticDealer.address,
+                value: formatReadableValue(0.5),
+                gas: 10e6
+            });
+
+            const orderBook = await mysticDealer.getOrderBook();
+
+            expect(orderBook.length).to.be.equal(2);
+
+            const [price, buyerAddress, bonusWon, timeStamp, purchasedTokenAmount] = orderBook[0];
+            const [price2, buyerAddress2, bonusWon2, timeStamp2, purchasedTokenAmount2] = orderBook[1];
+
+            // now for expect
+            expect(Number(price)).to.be.equal(100);
+            expect(Number(price2)).to.be.equal(100);
+
+            expect(buyer).to.be.equal(buyerAddress);
+            expect(anotherBuyer).to.be.equal(buyerAddress2);
+
+            expect(!!timeStamp && !!bonusWon && !!purchasedTokenAmount).to.be.true;
+            expect(!!timeStamp2 && !!bonusWon2 && !!purchasedTokenAmount2).to.be.true;
         })
     });
 });
