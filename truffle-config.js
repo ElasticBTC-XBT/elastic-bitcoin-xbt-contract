@@ -19,7 +19,7 @@
  */
 require('dotenv').config();
 
-const HDWalletProvider = require("truffle-hdwallet-provider-privkey");
+const HDWalletProvider = require('truffle-hdwallet-provider-privkey');
 
 const privateKeys = [process.env.PRIVATE_KEY]; // private keys
 
@@ -36,8 +36,8 @@ module.exports = {
 
   networks: {
     mainnet: {
-      provider: function() {
-        return new HDWalletProvider(privateKeys, `https://mainnet.infura.io/v3/${process.env.INFURA_ID}`)
+      provider: function () {
+        return new HDWalletProvider(privateKeys, `https://mainnet.infura.io/v3/${process.env.INFURA_ID}`);
       },
       gas: 2000000,
       gasPrice: 24000000000,
@@ -51,10 +51,10 @@ module.exports = {
     // options below to some value.
     //
     ganache: {
-     host: "127.0.0.1",     // Localhost (default: none)
-     port: 7545,            // Standard Ethereum port (default: none)
-     network_id: 5777,       // Any network (default: none)
-    },
+      host: '127.0.0.1', // Localhost (default: none)
+      port: 7545, // Standard Ethereum port (default: none)
+      network_id: 5777 // Any network (default: none)
+    }
     // Another network with more advanced options...
     // advanced: {
     // port: 8777,             // Custom port
@@ -90,7 +90,7 @@ module.exports = {
   // Configure your compilers
   compilers: {
     solc: {
-      version: "0.6.8",    // Fetch exact version from solc-bin (default: truffle's version)
+      version: '0.6.8' // Fetch exact version from solc-bin (default: truffle's version)
       // docker: true,        // Use "0.5.1" you've installed locally with docker (default: false)
       // settings: {          // See the solidity docs for advice about optimization and evmVersion
       //  optimizer: {
@@ -99,9 +99,9 @@ module.exports = {
       //  },
       //  evmVersion: "byzantium"
       // }
-    },
+    }
   },
 
   // config for coverage
-  plugins: ["solidity-coverage"]
+  plugins: ['solidity-coverage']
 };

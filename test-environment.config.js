@@ -3,7 +3,7 @@ const { GSNDevProvider } = require('@openzeppelin/gsn-provider');
 module.exports = {
   accounts: {
     amount: 10, // Number of unlocked accounts
-    ether: 100, // Initial balance of unlocked accounts (in ether)
+    ether: 100 // Initial balance of unlocked accounts (in ether)
   },
 
   contracts: {
@@ -12,7 +12,7 @@ module.exports = {
 
     // Options available since v0.1.2
     defaultGasPrice: 20e10, // Gas price for contract calls (when unspecified)
-    artifactsDir: 'build/contracts', // Directory where contract artifacts are stored
+    artifactsDir: 'build/contracts' // Directory where contract artifacts are stored
   },
 
   node: { // Options passed directly to Ganache client

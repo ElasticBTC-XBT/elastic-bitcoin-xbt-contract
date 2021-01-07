@@ -31,7 +31,7 @@ local.properties
 
 # CDT-specific (C/C++ Development Tooling)
 .cproject
-
+.eslintcache
 # Java annotation processor (APT)
 .factorypath
 
