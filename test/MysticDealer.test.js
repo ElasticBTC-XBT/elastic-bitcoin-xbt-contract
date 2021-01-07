@@ -13,6 +13,7 @@ const MysticDealer = contract.fromArtifact('MysticDealer');
 
 let token, otherToken, mysticDealer, owner, anotherAccount, foundationWallet, buyer, anotherBuyer, anotherAccount3, anotherAccount2;
 
+
 describe('MysticDealer', function () {
   beforeEach('setup contracts', async function () {
     const accounts = await chain.getUserAccounts();

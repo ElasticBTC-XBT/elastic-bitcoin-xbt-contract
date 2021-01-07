@@ -1,4 +1,7 @@
 {
+  "engines": {
+    "node": "10.x"
+  },
   "name": "xbt",
   "version": "1.2.0",
   "description": "",
