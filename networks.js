@@ -16,6 +16,7 @@ module.exports = {
     },
     rinkeby: {
       url: `https://rinkeby.infura.io/v3/${process.env.INFURA_ID}`,
+      accounts: [process.env.PRIVATE_KEY],
       chainId: 4
     },
     mainnet: {

@@ -44,6 +44,15 @@ module.exports = {
       network_id: 1,
       skipDryRun: true
     },
+    rinkeby: {
+      provider: function () {
+        return new HDWalletProvider(privateKeys, `https://rinkeby.infura.io/v3/${process.env.INFURA_ID}`);
+      },
+      gas: 5000000,
+      gasPrice: 24000000000,
+      network_id: 4,
+      skipDryRun: true
+    },
     // Useful for testing. The `development` name is special - truffle uses it by default
     // if it's defined here and no other network is specified at the command line.
     // You should run a client (like ganache-cli, geth or parity) in a separate terminal
