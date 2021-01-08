@@ -176,7 +176,7 @@ contract MysticDealer {
             winPercentage = 17;
         }
 
-        if (winPercentage <= luckyNumber) {
+        if (luckyNumber <= winPercentage) {
             // user wins the lottery, get double return
             bonusWon = exchangedAmount;
         }
