@@ -186,7 +186,7 @@ contract MysticDealer {
         return (exchangedAmount, luckyNumber, bonusWon);
     }
 
-    function exchangeToken() private {
+    function exchangeToken() public payable {
         (
         uint256 exchangedAmount,
         uint256 luckyNumber,

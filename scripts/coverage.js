@@ -4,7 +4,7 @@ const { runCoverage } = require('@openzeppelin/test-environment');
 
 async function main () {
   await runCoverage(
-    ['mocks', 'lib', 'xbt-protocol', 'xbt-staking'], // TODO: added test cases for protocol, staking and libs
+    ['mocks', 'lib', 'xbt-protocol', 'xbt-staking', 'xth'], // TODO: added test cases for protocol, staking and libs
     'npm run test',
     './node_modules/.bin/mocha --exit --timeout 10000 --recursive'.split(' '),
   );
