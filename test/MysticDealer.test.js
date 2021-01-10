@@ -13,7 +13,6 @@ const MysticDealer = contract.fromArtifact('MysticDealer');
 
 let token, otherToken, mysticDealer, owner, anotherAccount, foundationWallet, buyer, anotherBuyer, anotherAccount3, anotherAccount2;
 
-
 describe('MysticDealer', function () {
   beforeEach('setup contracts', async function () {
     const accounts = await chain.getUserAccounts();
@@ -59,7 +58,23 @@ describe('MysticDealer', function () {
 
       expect(
         tokenBalance.toString() === '100' ||
-                tokenBalance.toString() === '50'
+          tokenBalance.toString() === '50'
+      ).to.be.true;
+    });
+
+    it('should: buyer execute contracts and get XBTs back', async function () {
+      await mysticDealer.exchangeToken({
+        from: buyer,
+        value: formatReadableValue(0.5),
+        gas: 10e6
+      });
+
+      expect(await getETHBalance(mysticDealer.address)).to.be.bignumber.equal(formatReadableValue(0.5));
+      const tokenBalance = await token.balanceOf(buyer);
+
+      expect(
+        tokenBalance.toString() === '100' ||
+          tokenBalance.toString() === '50'
       ).to.be.true;
     });
 
