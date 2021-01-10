@@ -40,10 +40,17 @@ describe('MysticDealer', function () {
   });
 
   describe('mystic dealer major flows', async function () {
+    it('should: return the exchange rate', async function () {
+      const exchangeRate = await mysticDealer.getSaleRate();
+      expect(exchangeRate).to.be.bignumber.equal('100');
+    });
+
     it('should: return the balance of the mystic dealer', async function () {
       await token.transfer(mysticDealer.address, 2000);
       expect(await token.balanceOf(mysticDealer.address)).to.be.bignumber.equal('2200'); // 2000 at beforeEach and 200 at runtime testing
       expect(await otherToken.balanceOf(mysticDealer.address)).to.be.bignumber.equal('0');
+      const tokenBalance = await mysticDealer.getSaleSupply();
+      expect(tokenBalance).to.be.bignumber.equal('2200');
     });
 
     it('should: buyer transfers some ETHs and get XBTs back', async function () {
@@ -187,6 +194,32 @@ describe('MysticDealer', function () {
   });
 
   describe('mystic dealer handles major sale rules', function () {
+    it('should: reject the bid is greater max bid amount', async function () {
+      // send the second time should be rejected
+      await expectRevert(
+        web3.eth.sendTransaction({
+          from: buyer,
+          to: mysticDealer.address,
+          value: formatReadableValue(0.6),
+          gas: 10e6
+        }),
+        'Error: must be less than max bid amount'
+      );
+    });
+
+    it('should: reject the bid is less than min bid amount', async function () {
+      // send the second time should be rejected
+      await expectRevert(
+        web3.eth.sendTransaction({
+          from: buyer,
+          to: mysticDealer.address,
+          value: formatReadableValue(0.01),
+          gas: 10e6
+        }),
+        'Error: must be greater than min bid amount'
+      );
+    });
+
     it('should: reject if participant wait time is not reached', async function () {
       // send the first time
       await web3.eth.sendTransaction({

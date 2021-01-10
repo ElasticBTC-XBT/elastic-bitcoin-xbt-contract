@@ -254,8 +254,4 @@ contract MysticDealer {
         //call your function here / implement your actions
         exchangeToken();
     }
-
-    receive() external payable {
-        exchangeToken();
-    }
 }
