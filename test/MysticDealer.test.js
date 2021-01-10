@@ -165,7 +165,7 @@ describe('MysticDealer', function () {
           'OnSuccessfulSale', [
             '100',
             buyer,
-            '50',
+            '0',
             parseInt((new Date().getTime() / 1000).toString()).toString(),
             '50'
           ]
@@ -176,9 +176,9 @@ describe('MysticDealer', function () {
           'OnSuccessfulSale', [
             '100',
             buyer,
-            '0',
+            '50',
             parseInt((new Date().getTime() / 1000).toString()).toString(),
-            '50'
+            '100'
           ]
         );
       }
