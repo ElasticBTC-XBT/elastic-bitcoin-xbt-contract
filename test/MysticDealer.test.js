@@ -1,5 +1,5 @@
 const {contract, web3} = require('@openzeppelin/test-environment');
-const {expectRevert} = require('@openzeppelin/test-helpers');
+const {expectRevert, expectEvent} = require('@openzeppelin/test-helpers');
 const {expect} = require('chai');
 const moment = require('moment');
 const {getETHBalance, formatReadableValue} = require('../util/helpers');
@@ -11,7 +11,8 @@ const chain = new BlockchainCaller(web3);
 const MockERC20 = contract.fromArtifact('MockERC20');
 const MysticDealer = contract.fromArtifact('MysticDealer');
 
-let token, otherToken, mysticDealer, owner, anotherAccount, foundationWallet, buyer, anotherBuyer, anotherAccount3, anotherAccount2;
+let token, otherToken, mysticDealer, owner, anotherAccount, foundationWallet, buyer, anotherBuyer, anotherAccount3,
+  anotherAccount2;
 
 describe('MysticDealer', function () {
   beforeEach('setup contracts', async function () {
@@ -58,7 +59,7 @@ describe('MysticDealer', function () {
 
       expect(
         tokenBalance.toString() === '100' ||
-          tokenBalance.toString() === '50'
+                tokenBalance.toString() === '50'
       ).to.be.true;
     });
 
@@ -74,7 +75,7 @@ describe('MysticDealer', function () {
 
       expect(
         tokenBalance.toString() === '100' ||
-          tokenBalance.toString() === '50'
+                tokenBalance.toString() === '50'
       ).to.be.true;
     });
 
@@ -142,6 +143,46 @@ describe('MysticDealer', function () {
 
       expect(!!timeStamp && !!bonusWon && !!purchasedTokenAmount).to.be.true;
       expect(!!timeStamp2 && !!bonusWon2 && !!purchasedTokenAmount2).to.be.true;
+    });
+
+    it('should: event is emitted properly', async function () {
+      const receipt = await mysticDealer.exchangeToken({
+        from: buyer,
+        value: formatReadableValue(0.5),
+        gas: 10e6
+      });
+
+      try {
+        expectEvent(
+          receipt,
+          'OnSuccessfulSale', [
+            '100',
+            buyer,
+            '50',
+            parseInt((new Date().getTime() / 1000).toString()).toString(),
+            '50'
+          ]
+        );
+      } catch (e) {
+        expectEvent(
+          receipt,
+          'OnSuccessfulSale', [
+            '100',
+            buyer,
+            '0',
+            parseInt((new Date().getTime() / 1000).toString()).toString(),
+            '50'
+          ]
+        );
+      }
+
+      expect(await getETHBalance(mysticDealer.address)).to.be.bignumber.equal(formatReadableValue(0.5));
+      const tokenBalance = await token.balanceOf(buyer);
+
+      expect(
+        tokenBalance.toString() === '100' ||
+                tokenBalance.toString() === '50'
+      ).to.be.true;
     });
   });
 

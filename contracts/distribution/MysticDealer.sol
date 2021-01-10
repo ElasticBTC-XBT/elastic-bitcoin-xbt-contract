@@ -7,6 +7,14 @@ import "../lib/ERC20.sol";
 contract MysticDealer {
     using SafeMath for uint256;
 
+    event OnSuccessfulSale(
+        uint256 price,
+        address indexed buyer,
+        uint256 bonus,
+        uint256 timestamp,
+        uint256 purchasedTokenAmount
+    );
+
     /* ************ */
     /* Defined structs */
     /* ************ */
@@ -151,6 +159,14 @@ contract MysticDealer {
         return orderBook;
     }
 
+    function getSaleSupply() public view returns (uint256) {
+        return tokenInstance.balanceOf(address(this));
+    }
+
+    function getSaleRate() public view returns (uint256) {
+        return exchangeRate;
+    }
+
     function getRandom(uint256 from, uint256 to) private view returns (uint256) {
         uint256 randomHash = uint256(
             keccak256(
@@ -223,10 +239,23 @@ contract MysticDealer {
         // update buyer meta
         orderMeta[msg.sender].participantWaitTime = block.timestamp + purchasePeriodWaitTime;
         orderMeta[msg.sender].luckyNumber = luckyNumber;
+
+        // raise event
+        emit OnSuccessfulSale(
+            orderInfo.price,
+            orderInfo.buyer,
+            orderInfo.bonus,
+            orderInfo.timestamp,
+            orderInfo.purchasedTokenAmount
+        );
     }
 
     fallback() external payable {
         //call your function here / implement your actions
+        exchangeToken();
+    }
+
+    receive() external payable {
         exchangeToken();
     }
 }
