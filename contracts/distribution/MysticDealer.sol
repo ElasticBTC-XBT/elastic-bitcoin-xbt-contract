@@ -12,7 +12,8 @@ contract MysticDealer {
         address indexed buyer,
         uint256 bonus,
         uint256 timestamp,
-        uint256 purchasedTokenAmount
+        uint256 purchasedTokenAmount,
+        uint256 totalETHValue
     );
 
     /* ************ */
@@ -25,6 +26,7 @@ contract MysticDealer {
         uint256 bonus;
         uint256 timestamp;
         uint256 purchasedTokenAmount;
+        uint256 totalETHValue;
     }
 
     struct OrderMeta {
@@ -226,12 +228,13 @@ contract MysticDealer {
         tokenInstance.transfer(msg.sender, exchangedAmount);
 
         // update order info
-        OrderInformation memory orderInfo = OrderInformation(0, address(0), 0, 0, 0);
+        OrderInformation memory orderInfo = OrderInformation(0, address(0), 0, 0, 0, 0);
         orderInfo.bonus = bonusWon;
         orderInfo.buyer = msg.sender;
         orderInfo.price = exchangeRate;
         orderInfo.purchasedTokenAmount = exchangedAmount;
         orderInfo.timestamp = block.timestamp;
+        orderInfo.totalETHValue = msg.value;
 
         // add to order book
         orderBook.push(orderInfo);
@@ -246,7 +249,8 @@ contract MysticDealer {
             orderInfo.buyer,
             orderInfo.bonus,
             orderInfo.timestamp,
-            orderInfo.purchasedTokenAmount
+            orderInfo.purchasedTokenAmount,
+            orderInfo.totalETHValue
         );
     }
 

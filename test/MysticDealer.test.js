@@ -138,8 +138,8 @@ describe('MysticDealer', function () {
 
       expect(orderBook.length).to.be.equal(2);
 
-      const [price, buyerAddress, bonusWon, timeStamp, purchasedTokenAmount] = orderBook[0];
-      const [price2, buyerAddress2, bonusWon2, timeStamp2, purchasedTokenAmount2] = orderBook[1];
+      const [price, buyerAddress, bonusWon, timeStamp, purchasedTokenAmount, totalETHValue1] = orderBook[0];
+      const [price2, buyerAddress2, bonusWon2, timeStamp2, purchasedTokenAmount2, totalETHValue2] = orderBook[1];
 
       // now for expect
       expect(Number(price)).to.be.equal(100);
@@ -150,6 +150,9 @@ describe('MysticDealer', function () {
 
       expect(!!timeStamp && !!bonusWon && !!purchasedTokenAmount).to.be.true;
       expect(!!timeStamp2 && !!bonusWon2 && !!purchasedTokenAmount2).to.be.true;
+
+      expect(totalETHValue1).to.be.bignumber.equal(formatReadableValue(0.1));
+      expect(totalETHValue2).to.be.bignumber.equal(formatReadableValue(0.1));
     });
 
     it('should: event is emitted properly', async function () {
@@ -167,7 +170,8 @@ describe('MysticDealer', function () {
             buyer,
             '0',
             parseInt((new Date().getTime() / 1000).toString()).toString(),
-            '50'
+            '50',
+            formatReadableValue(0.5)
           ]
         );
       } catch (e) {
@@ -178,7 +182,8 @@ describe('MysticDealer', function () {
             buyer,
             '50',
             parseInt((new Date().getTime() / 1000).toString()).toString(),
-            '100'
+            '100',
+            formatReadableValue(0.5)
           ]
         );
       }
