@@ -165,8 +165,8 @@ contract MysticDealer {
         return tokenInstance.balanceOf(address(this));
     }
 
-    function getSaleRate() public view returns (uint256) {
-        return exchangeRate;
+    function getSaleRule() public view returns (uint256, uint256, uint256) {
+        return (minBidAmount, maxBidAmount, exchangeRate);
     }
 
     function getRandom(uint256 from, uint256 to) private view returns (uint256) {

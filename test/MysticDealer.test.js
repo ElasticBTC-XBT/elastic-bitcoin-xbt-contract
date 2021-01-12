@@ -40,9 +40,14 @@ describe('MysticDealer', function () {
   });
 
   describe('mystic dealer major flows', async function () {
-    it('should: return the exchange rate', async function () {
-      const exchangeRate = await mysticDealer.getSaleRate();
+    it('should: return the sale rules', async function () {
+      const saleRule = await mysticDealer.getSaleRule();
+      const {
+        '0': minBidAmount, '1': maxBidAmount, '2': exchangeRate
+      } = saleRule;
       expect(exchangeRate).to.be.bignumber.equal('100');
+      expect(minBidAmount).to.be.bignumber.equal(formatReadableValue(0.05));
+      expect(maxBidAmount).to.be.bignumber.equal(formatReadableValue(0.5));
     });
 
     it('should: return the balance of the mystic dealer', async function () {
