@@ -30,7 +30,8 @@ module.exports = {
       chainId: 4,
     },
     mainnet: {
-      url: `https://mainnet.infura.io/v3/${process.env.INFURA_ID}`,
+      // url: `https://mainnet.infura.io/v3/${process.env.INFURA_ID}`,
+      url: `https://eth-mainnet.alchemyapi.io/v2/${process.env.ALCHEMY_ID}`,
       accounts: [process.env.PRIVATE_KEY],
       gas: 'auto',
       gasPrice: 'auto',
