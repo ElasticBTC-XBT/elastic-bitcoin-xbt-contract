@@ -22,6 +22,7 @@ require('dotenv').config();
 const HDWalletProvider = require('truffle-hdwallet-provider-privkey');
 
 const privateKeys = [process.env.PRIVATE_KEY]; // private keys
+const xbtPrivateKeys = [process.env.XBT_PRIVATE_KEY]; // xbt genesis private keys
 
 module.exports = {
   /**
@@ -43,6 +44,14 @@ module.exports = {
       gasPrice: 24000000000,
       network_id: 1,
       skipDryRun: true
+    },
+    local: {
+      provider: function() {
+        return new HDWalletProvider(xbtPrivateKeys, `http://127.0.0.1:8545`)
+      },
+
+      network_id: 5777,       // Any network (default: none)
+
     },
     rinkeby: {
       provider: function () {
@@ -109,7 +118,22 @@ module.exports = {
       //  evmVersion: "byzantium"
       // }
     }
+      settings: {          // See the solidity docs for advice about optimization and evmVersion
+       optimizer: {
+         enabled: true,
+         runs: 200
+       },
+       evmVersion: "byzantium"
+      }
+    },
   },
+    plugins: [
+    'truffle-plugin-verify'
+  ],
+  api_keys: {
+    etherscan: 'AIY6GY1N36JI9BPUA6R5I4BUW4923GG3MD'
+  }
+
 
   // config for coverage
   plugins: ['solidity-coverage']
