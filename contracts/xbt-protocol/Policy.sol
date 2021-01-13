@@ -96,6 +96,7 @@ contract Policy is OwnableUpgradeSafe {
         external
         onlyOwner
     {
+        // as deploy:  0x5f8886272c7b3b5fd5c520534a6152205c3ce651
 		_pairXBTWBTC = IUniswapV2Pair(UniswapV2Library.pairFor(factory, token0, token1));
 
     }
@@ -118,8 +119,34 @@ contract Policy is OwnableUpgradeSafe {
         console.log("reserves0 %s", reserves0);
         console.log("reserves1 %s", reserves1);
 
-	    // reserves1 = WBTC (8 decimals)
-	    // reserves0 = XBT (8 decimals)
+	    // reserves1 = XBT (8 decimals)
+	    // reserves0 = WBTC (8 decimals)
+        // {
+        // pair(id:"0x5f8886272c7b3b5fd5c520534a6152205c3ce651") {
+        //     id,
+        //     token0 {
+        //     id
+        //     },
+        //     token1 {
+        //     id
+        //     }
+            
+        // }
+        // }
+
+        // {
+        // "data": {
+        //     "pair": {
+        //     "id": "0x5f8886272c7b3b5fd5c520534a6152205c3ce651",
+        //     "token0": {
+        //         "id": "0x2260fac5e5542a773aa44fbcfedf7c193bc2c599"
+        //     },
+        //     "token1": {
+        //         "id": "0x64fb96d0395f6bf105f35233911e3df2c5bf4ce8"
+        //     }
+        //     }
+        // }
+        // }
 
         return reserves0.mul(PRICE_PRECISION).div(reserves1);
     }
@@ -337,8 +364,8 @@ contract Policy is OwnableUpgradeSafe {
         external
         onlyOwner
     {
-        require(minRebaseTimeIntervalSec_ > 0);
-        require(rebaseWindowOffsetSec_ < minRebaseTimeIntervalSec_);
+        require(minRebaseTimeIntervalSec_ > 0,"minRebaseTimeIntervalSec_ > 0");
+        require(rebaseWindowOffsetSec_ < minRebaseTimeIntervalSec_,"rebaseWindowOffsetSec_ < minRebaseTimeIntervalSec_");
 
         minRebaseTimeIntervalSec = minRebaseTimeIntervalSec_;
         rebaseWindowOffsetSec = rebaseWindowOffsetSec_;
@@ -360,14 +387,15 @@ contract Policy is OwnableUpgradeSafe {
         // deviationThreshold = 0.05e8 = 5e6
         deviationThreshold = 5 * 10 ** (DECIMALS-2);
 
-        rebaseLag = 8 * 3 * 100; // 8 hours * 3 * 100 days
+        rebaseLag =  100; //  100 days
         minRebaseTimeIntervalSec = 24 * 60 * 60; // 24 hours;
-        rebaseWindowOffsetSec = 0;  //
-        rebaseWindowLengthSec =  8 * 60 * 60;// 8 * 60 * 60 minutes;
+        rebaseWindowOffsetSec = 0;  // no offset
+        rebaseWindowLengthSec =  23 * 60 * 60 + 59 * 60;// 23 hours + 59 minutes
         lastRebaseTimestampSec = 0;
         epoch = 0;
 
         XBTs = XBTs_;
+        _pairXBTWBTC = IUniswapV2Pair(UniswapV2Library.pairFor(0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f, 0x64fB96d0395f6bf105F35233911e3dF2C5bf4Ce8, 0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599));
 
     }
 
