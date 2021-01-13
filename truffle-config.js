@@ -124,12 +124,11 @@ module.exports = {
       evmVersion: 'byzantium'
     }
   },
-  plugins:
-        [
-          'truffle-plugin-verify',
-          'solidity-coverage'
-        ],
+  plugins: [
+    'truffle-plugin-verify',
+    'solidity-coverage'
+  ],
   api_keys: {
-    etherscan: 'AIY6GY1N36JI9BPUA6R5I4BUW4923GG3MD'
+    etherscan: process.env.ETHERSCAN_KEY
   }
 };
