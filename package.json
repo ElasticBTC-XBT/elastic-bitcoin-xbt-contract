@@ -39,7 +39,6 @@
     "hardhat": "^2.0.6",
     "moment": "^2.29.1",
     "solidity-coverage": "^0.7.13",
-    "truffle-hdwallet-provider": "^1.0.17",
     "eslint": "^4.19.1",
     "eslint-config-google": "^0.9.1",
     "eslint-config-mocha": "0.0.0",
