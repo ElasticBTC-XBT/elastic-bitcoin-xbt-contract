@@ -26,14 +26,14 @@ const xbtPrivateKeys = [process.env.XBT_PRIVATE_KEY]; // xbt genesis private key
 
 module.exports = {
   /**
-   * Networks define how you connect to your ethereum client and let you set the
-   * defaults web3 uses to send transactions. If you don't specify one truffle
-   * will spin up a development blockchain for you on port 9545 when you
-   * run `develop` or `test`. You can ask a truffle command to use a specific
-   * network from the command line, e.g
-   *
-   * $ truffle test --network <network-name>
-   */
+     * Networks define how you connect to your ethereum client and let you set the
+     * defaults web3 uses to send transactions. If you don't specify one truffle
+     * will spin up a development blockchain for you on port 9545 when you
+     * run `develop` or `test`. You can ask a truffle command to use a specific
+     * network from the command line, e.g
+     *
+     * $ truffle test --network <network-name>
+     */
 
   networks: {
     mainnet: {
@@ -46,12 +46,10 @@ module.exports = {
       skipDryRun: true
     },
     local: {
-      provider: function() {
-        return new HDWalletProvider(xbtPrivateKeys, `http://127.0.0.1:8545`)
+      provider: function () {
+        return new HDWalletProvider(xbtPrivateKeys, 'http://127.0.0.1:8545');
       },
-
-      network_id: 5777,       // Any network (default: none)
-
+      network_id: 5777 // Any network (default: none)
     },
     rinkeby: {
       provider: function () {
@@ -117,24 +115,21 @@ module.exports = {
       //  },
       //  evmVersion: "byzantium"
       // }
-    }
-      settings: {          // See the solidity docs for advice about optimization and evmVersion
-       optimizer: {
-         enabled: true,
-         runs: 200
-       },
-       evmVersion: "byzantium"
-      }
     },
+    settings: { // See the solidity docs for advice about optimization and evmVersion
+      optimizer: {
+        enabled: true,
+        runs: 200
+      },
+      evmVersion: 'byzantium'
+    }
   },
-    plugins: [
-    'truffle-plugin-verify'
-  ],
+  plugins:
+        [
+          'truffle-plugin-verify',
+          'solidity-coverage'
+        ],
   api_keys: {
     etherscan: 'AIY6GY1N36JI9BPUA6R5I4BUW4923GG3MD'
   }
-
-
-  // config for coverage
-  plugins: ['solidity-coverage']
 };
