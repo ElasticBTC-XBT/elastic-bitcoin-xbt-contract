@@ -26,12 +26,10 @@ module.exports = {
       chainId: 4
     },
     mainnet: {
-      // url: `https://mainnet.infura.io/v3/${process.env.INFURA_ID}`,
-      provider: function () {
-        return new HDWalletProvider([process.env.PRIVATE_KEY], `https://mainnet.infura.io/v3/${process.env.INFURA_ID}`);
-      },
-      // gas: 'auto',
-      // gasPrice: 'auto',
+      url: `https://mainnet.infura.io/v3/${process.env.INFURA_ID}`,
+      accounts: [process.env.PRIVATE_KEY],
+      gas: 'auto',
+      gasPrice: 'auto',
       chainId: 1
     }
   }
