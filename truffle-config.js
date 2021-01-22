@@ -23,6 +23,7 @@ const HDWalletProvider = require('truffle-hdwallet-provider-privkey');
 
 const privateKeys = [process.env.PRIVATE_KEY]; // private keys
 const xbtPrivateKeys = [process.env.XBT_PRIVATE_KEY]; // xbt genesis private keys
+const web3 = require('web3');
 
 module.exports = {
   /**
@@ -41,9 +42,10 @@ module.exports = {
         return new HDWalletProvider(privateKeys, `https://mainnet.infura.io/v3/${process.env.INFURA_ID}`);
       },
       gas: 2000000,
-      gasPrice: 24000000000,
+      gasPrice: web3.utils.toWei('100', 'gwei'),
       network_id: 1,
-      skipDryRun: true
+      skipDryRun: true,
+      networkCheckTimeout: 100000
     },
     local: {
       provider: function () {
