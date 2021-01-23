@@ -42,7 +42,7 @@ module.exports = {
         return new HDWalletProvider(privateKeys, `https://mainnet.infura.io/v3/${process.env.INFURA_ID}`);
       },
       gas: 2000000,
-      gasPrice: web3.utils.toWei('100', 'gwei'),
+      gasPrice: web3.utils.toWei('50', 'gwei'),
       network_id: 1,
       skipDryRun: true,
       networkCheckTimeout: 100000
