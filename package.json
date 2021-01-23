@@ -7,7 +7,7 @@
   "description": "",
   "main": "networks.js",
   "scripts": {
-    "truffle:migrate": "truffle migrate --reset --compile-all --network=ganache",
+    "truffle:migrate": "truffle migrate -f 2 --to 2 --reset --compile-all --network ganache",
     "truffle:console": "truffle console --network local",
     "truffle:migrate:mainnet": "truffle migrate -f 2 --to 2 --network=mainnet",
     "hardhat:start": "npx hardhat node --network hardhat",
@@ -18,7 +18,8 @@
     "compile-contracts": "./scripts/compile-contracts.sh",
     "lint": "npx eslint ./scripts ./test ./util *.js --cache --fix && npx solhint ./contracts/*.sol",
     "test": "./scripts/test.sh",
-    "test-coverage": "NODE_OPTIONS=\"--max-old-space-size=4096\" node ./scripts/coverage.js"
+    "test-coverage": "NODE_OPTIONS=\"--max-old-space-size=4096\" node ./scripts/coverage.js",
+    "flatten": "truffle-flattener ./contracts/distribution/HappyDealer.sol > ./flatten-contracts/HappyDealerFlat.sol"
   },
   "author": "",
   "license": "ISC",

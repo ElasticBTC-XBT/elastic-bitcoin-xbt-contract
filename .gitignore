@@ -1,4 +1,5 @@
 # source: https://github.com/ethereum/solidity-examples/blob/master/.gitignore
+flatten-contracts/
 
 # Created by .ignore support plugin (hsz.mobi)
 ### VisualStudioCode template
