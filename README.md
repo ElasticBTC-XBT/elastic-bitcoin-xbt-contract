@@ -11,6 +11,7 @@ The official XBT contract addresses are (by target):
 - Etherscan: [0x64fB96d0395f6bf105F35233911e3dF2C5bf4Ce8](https://etherscan.io/token/0x64fB96d0395f6bf105F35233911e3dF2C5bf4Ce8)
 - Rebaser: [0xb33d4E433443C0601c69a421152C8698a846E1e5](https://etherscan.io/address/0xb33d4E433443C0601c69a421152C8698a846E1e5)
 - Airdrop: [0x2cb3c989d47a87a2bf1a49b9868b1ea533570e2c](https://etherscan.io/address/0x2cb3c989d47a87a2bf1a49b9868b1ea533570e2c)
+- Public Sales: [0xdb6a3ad80d2c3378ba8d921835b37e749515274c](https://etherscan.io/address/0xdb6a3ad80d2c3378ba8d921835b37e749515274c)
 
 ## Table of Contents
 
