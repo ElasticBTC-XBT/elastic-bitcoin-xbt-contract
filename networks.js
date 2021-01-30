@@ -30,6 +30,20 @@ module.exports = {
       gas: 'auto',
       gasPrice: 'auto',
       chainId: 1
+    },
+    bsc_testnet: {
+      url: 'https://data-seed-prebsc-1-s1.binance.org:8545',
+      accounts: [process.env.PRIVATE_KEY],
+      gas: 'auto',
+      gasPrice: 'auto',
+      chainId: 97
+    },
+    bsc: {
+      url: 'https://bsc-dataseed1.binance.org',
+      accounts: [process.env.PRIVATE_KEY],
+      gas: 'auto',
+      gasPrice: 'auto',
+      chainId: 56
     }
   }
 };

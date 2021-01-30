@@ -7,7 +7,7 @@ import '@uniswap/v2-core/contracts/interfaces/IUniswapV2Pair.sol';
 import "../lib/SafeMathInt.sol";
 import "../lib/UInt256Lib.sol";
 import "../lib/UniV2Library.sol";
-import "./XTH.sol";
+import "./XBN.sol";
 
 
 /**
@@ -19,7 +19,7 @@ import "./XTH.sol";
  *      This component regulates the token supply of the XTH ERC20 token in response to
  *      market oracles.
  */
-contract XTHPolicy is OwnableUpgradeSafe {
+contract XBNPolicy is OwnableUpgradeSafe {
     using SafeMath for uint256;
     using SafeMathInt for int256;
     using UInt256Lib for uint256;
@@ -43,7 +43,7 @@ contract XTHPolicy is OwnableUpgradeSafe {
         uint256 timestampSec
     );
 
-    XTH public XTHs;
+    XBN public XBNs;
 
 
     // If the current exchange rate is within this fractional distance from the target, no supply
@@ -87,14 +87,14 @@ contract XTHPolicy is OwnableUpgradeSafe {
 
 
 
-    IUniswapV2Pair public _pairXTHETH;
+    IUniswapV2Pair public _pairXBNBNB;
 
 
-	function setPairXTHETH(address factory, address token0, address token1)
+	function setPairXBNBNB(address factory, address token0, address token1)
         external
         onlyOwner
     {
-		_pairXTHETH = IUniswapV2Pair(UniswapV2Library.pairFor(factory, token0, token1));
+		_pairXBNBNB = IUniswapV2Pair(UniswapV2Library.pairFor(factory, token0, token1));
 
     }
     // function setToken0Token1(address token0, address token1)
@@ -106,13 +106,13 @@ contract XTHPolicy is OwnableUpgradeSafe {
     // }
 
 
-    function getPriceXTH_ETH() internal returns (uint256) {
+    function getPriceXBN_BNB() internal returns (uint256) {
 
 
-	    require(address(_pairXTHETH) != address(0), "error: address(_pairXTHETH) == address(0)" );
+	    require(address(_pairXBNBNB) != address(0), "error: address(_pairXBNBNB) == address(0)" );
 
 
-	    (uint256 reserves0, uint256 reserves1,) = _pairXTHETH.getReserves();
+	    (uint256 reserves0, uint256 reserves1,) = _pairXBNBNB.getReserves();
         console.log("reserves0 %s", reserves0);
         console.log("reserves1 %s", reserves1);
 
@@ -150,7 +150,7 @@ contract XTHPolicy is OwnableUpgradeSafe {
 
         uint256 targetRate = 1 * PRICE_PRECISION; // 1 XTH = 1 ETH ==> 1.mul(10 ** PRICE_PRECISION);
 
-        uint256 exchangeRate = getPriceXTH_ETH();
+        uint256 exchangeRate = getPriceXBN_BNB();
 
         console.log("exchangeRate %s",exchangeRate );
 

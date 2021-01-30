@@ -18,7 +18,7 @@ import "../lib/SafeMathInt.sol";
  *      We support splitting the currency in expansion and combining the currency on contraction by
  *      changing the exchange rate between the hidden 'gons' and the public 'fragments'.
  */
-contract XTH is  ERC20UpgradeSafe, OwnableUpgradeSafe {
+contract XBN is  ERC20UpgradeSafe, OwnableUpgradeSafe {
     // PLEASE READ BEFORE CHANGING ANY ACCOUNTING OR MATH
     // Anytime there is division, there is a risk of numerical instability from rounding errors. In
     // order to minimize this risk, we adhere to the following guidelines:
@@ -59,9 +59,9 @@ contract XTH is  ERC20UpgradeSafe, OwnableUpgradeSafe {
         _;
     }
 
-    uint256 private constant DECIMALS = 8;
+    uint256 private constant DECIMALS = 18;
     uint256 private constant MAX_UINT256 = ~uint256(0);
-    uint256 private constant INITIAL_FRAGMENTS_SUPPLY = 17 * 10**6 * 10**DECIMALS;
+    uint256 private constant INITIAL_FRAGMENTS_SUPPLY = 6.5 * 10**6 * 10**DECIMALS;
 
     // TOTAL_GONS is a multiple of INITIAL_FRAGMENTS_SUPPLY so that _gonsPerFragment is an integer.
     // Use the highest value that fits in a uint256 for max granularity.
@@ -136,7 +136,7 @@ contract XTH is  ERC20UpgradeSafe, OwnableUpgradeSafe {
         initializer
 
     {
-        ERC20UpgradeSafe.__ERC20_init("Elastic Ethereum", "XTH");
+        ERC20UpgradeSafe.__ERC20_init("Elastic BNB", "XBN");
         ERC20UpgradeSafe._setupDecimals(uint8(DECIMALS));
         OwnableUpgradeSafe.__Ownable_init();
 
