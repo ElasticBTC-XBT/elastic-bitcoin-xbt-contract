@@ -67,14 +67,13 @@ module.exports = {
       network_id: 97,
       confirmations: 10,
       timeoutBlocks: 200,
-      skipDryRun: true
     },
     bsc: {
       provider: () => new HDWalletProvider(privateKeys, 'https://bsc-dataseed1.binance.org'),
       network_id: 56,
       confirmations: 10,
       timeoutBlocks: 200,
-      skipDryRun: true
+      gas: 2000000
     },
     // Useful for testing. The `development` name is special - truffle uses it by default
     // if it's defined here and no other network is specified at the command line.
