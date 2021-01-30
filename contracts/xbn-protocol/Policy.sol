@@ -108,8 +108,6 @@ contract XBNPolicy is OwnableUpgradeSafe {
         require(address(_pairXBNBNB) != address(0), "error: address(_pairXBNBNB) == address(0)");
 
         (uint256 reserves0, uint256 reserves1,) = _pairXBNBNB.getReserves();
-        console.log("reserves0 %s", reserves0);
-        console.log("reserves1 %s", reserves1);
 
         // reserves1 = ETH (18 decimals)
         // reserves0 = XTH (18 decimals)
@@ -147,8 +145,6 @@ contract XBNPolicy is OwnableUpgradeSafe {
         // 1 XTH = 1 ETH ==> 1.mul(10 ** PRICE_PRECISION);
 
         uint256 exchangeRate = getPriceXBN_BNB();
-
-        console.log("exchangeRate %s", exchangeRate);
 
         if (exchangeRate > MAX_RATE) {
             exchangeRate = MAX_RATE;
