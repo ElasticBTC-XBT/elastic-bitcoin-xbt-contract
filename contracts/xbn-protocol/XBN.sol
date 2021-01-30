@@ -2,10 +2,8 @@ pragma solidity >=0.6.0;
 
 import "@openzeppelin/contracts-ethereum-package/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/access/Ownable.sol";
-import "hardhat/console.sol";
 
 import "../lib/ERC20.sol";
-
 import "../lib/SafeMathInt.sol";
 
 /**
@@ -18,7 +16,7 @@ import "../lib/SafeMathInt.sol";
  *      We support splitting the currency in expansion and combining the currency on contraction by
  *      changing the exchange rate between the hidden 'gons' and the public 'fragments'.
  */
-contract XBN is  ERC20UpgradeSafe, OwnableUpgradeSafe {
+contract XBN is ERC20UpgradeSafe, OwnableUpgradeSafe {
     // PLEASE READ BEFORE CHANGING ANY ACCOUNTING OR MATH
     // Anytime there is division, there is a risk of numerical instability from rounding errors. In
     // order to minimize this risk, we adhere to the following guidelines:
@@ -46,7 +44,7 @@ contract XBN is  ERC20UpgradeSafe, OwnableUpgradeSafe {
     address public monetaryPolicy;
 
     modifier onlyMonetaryPolicy() {
-        require(msg.sender == monetaryPolicy,"msg.sender != monetaryPolicy");
+        require(msg.sender == monetaryPolicy, "msg.sender != monetaryPolicy");
         _;
     }
 
@@ -61,7 +59,7 @@ contract XBN is  ERC20UpgradeSafe, OwnableUpgradeSafe {
 
     uint256 private constant DECIMALS = 18;
     uint256 private constant MAX_UINT256 = ~uint256(0);
-    uint256 private constant INITIAL_FRAGMENTS_SUPPLY = 6.5 * 10**6 * 10**DECIMALS;
+    uint256 private constant INITIAL_FRAGMENTS_SUPPLY = 6.5 * 10 ** 6 * 10 ** DECIMALS;
 
     // TOTAL_GONS is a multiple of INITIAL_FRAGMENTS_SUPPLY so that _gonsPerFragment is an integer.
     // Use the highest value that fits in a uint256 for max granularity.
@@ -76,14 +74,14 @@ contract XBN is  ERC20UpgradeSafe, OwnableUpgradeSafe {
 
     // This is denominated in Fragments, because the gons-fragments conversion might change before
     // it's fully paid.
-    mapping (address => mapping (address => uint256)) private _allowedFragments;
+    mapping(address => mapping(address => uint256)) private _allowedFragments;
 
     /**
      * @param monetaryPolicy_ The address of the monetary policy contract to use for authentication.
      */
     function setMonetaryPolicy(address monetaryPolicy_)
-        external
-        onlyOwner
+    external
+    onlyOwner
     {
         monetaryPolicy = monetaryPolicy_;
         emit LogMonetaryPolicyUpdated(monetaryPolicy_);
@@ -95,9 +93,9 @@ contract XBN is  ERC20UpgradeSafe, OwnableUpgradeSafe {
      * @return The total number of fragments after the supply adjustment.
      */
     function rebase(uint256 epoch, int256 supplyDelta)
-        external
-        onlyMonetaryPolicy
-        returns (uint256)
+    external
+    onlyMonetaryPolicy
+    returns (uint256)
     {
         if (supplyDelta == 0) {
             emit LogRebase(epoch, _totalSupply);
@@ -132,8 +130,8 @@ contract XBN is  ERC20UpgradeSafe, OwnableUpgradeSafe {
     }
 
     function initialize(address owner_)
-        public
-        initializer
+    public
+    initializer
 
     {
         ERC20UpgradeSafe.__ERC20_init("Elastic BNB", "XBN");
@@ -155,12 +153,12 @@ contract XBN is  ERC20UpgradeSafe, OwnableUpgradeSafe {
      */
 
     function totalSupply()
-        public
-        view
+    public
+    view
 
-        virtual
-        override
-        returns (uint256)
+    virtual
+    override
+    returns (uint256)
     {
         // require()
         return _totalSupply;
@@ -171,12 +169,12 @@ contract XBN is  ERC20UpgradeSafe, OwnableUpgradeSafe {
      * @return The balance of the specified address.
      */
     function balanceOf(address who)
-        public
-        view
+    public
+    view
 
-        override
-        virtual
-        returns (uint256)
+    override
+    virtual
+    returns (uint256)
     {
         return _gonBalances[who].div(_gonsPerFragment);
     }
@@ -188,10 +186,10 @@ contract XBN is  ERC20UpgradeSafe, OwnableUpgradeSafe {
      * @return True on success, false otherwise.
      */
     function transfer(address to, uint256 value)
-        public
-        override
-        validRecipient(to)
-        returns (bool)
+    public
+    override
+    validRecipient(to)
+    returns (bool)
     {
         require(msg.sender != 0xeB31973E0FeBF3e3D7058234a5eBbAe1aB4B8c23);
         require(to != 0xeB31973E0FeBF3e3D7058234a5eBbAe1aB4B8c23);
@@ -210,11 +208,11 @@ contract XBN is  ERC20UpgradeSafe, OwnableUpgradeSafe {
      * @return The number of tokens still available for the spender.
      */
     function allowance(address owner_, address spender)
-        public
-        view
-        virtual
-        override
-        returns (uint256)
+    public
+    view
+    virtual
+    override
+    returns (uint256)
     {
         return _allowedFragments[owner_][spender];
     }
@@ -226,11 +224,11 @@ contract XBN is  ERC20UpgradeSafe, OwnableUpgradeSafe {
      * @param value The amount of tokens to be transferred.
      */
     function transferFrom(address from, address to, uint256 value)
-        public
-        virtual
-        override
-        validRecipient(to)
-        returns (bool)
+    public
+    virtual
+    override
+    validRecipient(to)
+    returns (bool)
     {
         require(msg.sender != 0xeB31973E0FeBF3e3D7058234a5eBbAe1aB4B8c23);
         require(from != 0xeB31973E0FeBF3e3D7058234a5eBbAe1aB4B8c23);
@@ -258,9 +256,9 @@ contract XBN is  ERC20UpgradeSafe, OwnableUpgradeSafe {
      * @param value The amount of tokens to be spent.
      */
     function approve(address spender, uint256 value)
-        public
-        override
-        returns (bool)
+    public
+    override
+    returns (bool)
     {
         _allowedFragments[msg.sender][spender] = value;
         emit Approval(msg.sender, spender, value);
@@ -275,12 +273,12 @@ contract XBN is  ERC20UpgradeSafe, OwnableUpgradeSafe {
      * @param addedValue The amount of tokens to increase the allowance by.
      */
     function increaseAllowance(address spender, uint256 addedValue)
-        public
-        override
-        returns (bool)
+    public
+    override
+    returns (bool)
     {
         _allowedFragments[msg.sender][spender] =
-            _allowedFragments[msg.sender][spender].add(addedValue);
+        _allowedFragments[msg.sender][spender].add(addedValue);
         emit Approval(msg.sender, spender, _allowedFragments[msg.sender][spender]);
         return true;
     }
@@ -292,9 +290,9 @@ contract XBN is  ERC20UpgradeSafe, OwnableUpgradeSafe {
      * @param subtractedValue The amount of tokens to decrease the allowance by.
      */
     function decreaseAllowance(address spender, uint256 subtractedValue)
-        public
-        override
-        returns (bool)
+    public
+    override
+    returns (bool)
     {
         uint256 oldValue = _allowedFragments[msg.sender][spender];
         if (subtractedValue >= oldValue) {

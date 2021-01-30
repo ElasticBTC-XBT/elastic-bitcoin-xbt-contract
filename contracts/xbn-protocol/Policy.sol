@@ -38,7 +38,7 @@ contract XBNPolicy is OwnableUpgradeSafe {
     event LogRebase(
         uint256 indexed epoch,
         uint256 exchangeRate,
-        // uint256 cpi,
+    // uint256 cpi,
         int256 requestedSupplyAdjustment,
         uint256 timestampSec
     );
@@ -77,48 +77,42 @@ contract XBNPolicy is OwnableUpgradeSafe {
 
     // Due to the expression in computeSupplyDelta(), MAX_RATE * MAX_SUPPLY must fit into an int256.
     // Both are 18 decimals fixed point numbers.
-    uint256 private constant MAX_RATE = 10**8 * 10**DECIMALS;
+    uint256 private constant MAX_RATE = 10 ** 8 * 10 ** DECIMALS;
     // MAX_SUPPLY = MAX_INT256 / MAX_RATE
     uint256 private constant MAX_SUPPLY = ~(uint256(1) << 255) / MAX_RATE;
 
 
-
-    uint256 private constant PRICE_PRECISION = 10**2;
-
+    uint256 private constant PRICE_PRECISION = 10 ** 2;
 
 
     IUniswapV2Pair public _pairXBNBNB;
 
 
-	function setPairXBNBNB(address factory, address token0, address token1)
-        external
-        onlyOwner
+    function setPairXBNBNB(address factory, address token0, address token1)
+    external
+    onlyOwner
     {
-		_pairXBNBNB = IUniswapV2Pair(UniswapV2Library.pairFor(factory, token0, token1));
+        _pairXBNBNB = IUniswapV2Pair(UniswapV2Library.pairFor(factory, token0, token1));
 
     }
     // function setToken0Token1(address token0, address token1)
     //     external
     //     onlyOwner
     // {
-	// 	(address token0, address token1) = UniswapV2Library.sortTokens( token0, token1);
+    // 	(address token0, address token1) = UniswapV2Library.sortTokens( token0, token1);
 
     // }
 
 
     function getPriceXBN_BNB() internal returns (uint256) {
+        require(address(_pairXBNBNB) != address(0), "error: address(_pairXBNBNB) == address(0)");
 
-
-	    require(address(_pairXBNBNB) != address(0), "error: address(_pairXBNBNB) == address(0)" );
-
-
-	    (uint256 reserves0, uint256 reserves1,) = _pairXBNBNB.getReserves();
+        (uint256 reserves0, uint256 reserves1,) = _pairXBNBNB.getReserves();
         console.log("reserves0 %s", reserves0);
         console.log("reserves1 %s", reserves1);
 
-	    // reserves1 = ETH (18 decimals)
-	    // reserves0 = XTH (18 decimals)
-
+        // reserves1 = ETH (18 decimals)
+        // reserves0 = XTH (18 decimals)
         return reserves0.mul(PRICE_PRECISION).div(reserves1);
     }
 
@@ -130,10 +124,11 @@ contract XBNPolicy is OwnableUpgradeSafe {
      *      Where DeviationFromTargetRate is (exchangeRate - targetRate) / targetRate
      *      and targetRate is WBTC/USDC
      */
-    function rebase() external  {
+    function rebase() external {
 
 
-         require(msg.sender == tx.origin, "error: msg.sender == tx.origin");  // solhint-disable-line avoid-tx-origin
+        require(msg.sender == tx.origin, "error: msg.sender == tx.origin");
+        // solhint-disable-line avoid-tx-origin
 
 
         require(inRebaseWindow(), "Not inRebaseWindow");
@@ -148,11 +143,12 @@ contract XBNPolicy is OwnableUpgradeSafe {
         epoch = epoch.add(1);
 
 
-        uint256 targetRate = 1 * PRICE_PRECISION; // 1 XTH = 1 ETH ==> 1.mul(10 ** PRICE_PRECISION);
+        uint256 targetRate = 1 * PRICE_PRECISION;
+        // 1 XTH = 1 ETH ==> 1.mul(10 ** PRICE_PRECISION);
 
         uint256 exchangeRate = getPriceXBN_BNB();
 
-        console.log("exchangeRate %s",exchangeRate );
+        console.log("exchangeRate %s", exchangeRate);
 
         if (exchangeRate > MAX_RATE) {
             exchangeRate = MAX_RATE;
@@ -177,7 +173,7 @@ contract XBNPolicy is OwnableUpgradeSafe {
             Transaction storage t = transactions[i];
             if (t.enabled) {
                 bool result =
-                    externalCall(t.destination, t.data);
+                externalCall(t.destination, t.data);
                 if (!result) {
                     emit TransactionFailed(t.destination, i, t.data);
                     revert("Transaction Failed");
@@ -186,19 +182,19 @@ contract XBNPolicy is OwnableUpgradeSafe {
         }
     }
 
-	/**
+    /**
      * @notice Adds a transaction that gets called for a downstream receiver of rebases
      * @param destination Address of contract destination
      * @param data Transaction data payload
      */
     function addTransaction(address destination, bytes calldata data)
-        external
-        onlyOwner
+    external
+    onlyOwner
     {
         transactions.push(Transaction({
-            enabled: true,
-            destination: destination,
-            data: data
+        enabled : true,
+        destination : destination,
+        data : data
         }));
     }
 
@@ -207,8 +203,8 @@ contract XBNPolicy is OwnableUpgradeSafe {
      *              Transaction ordering may have changed since adding.
      */
     function removeTransaction(uint index)
-        external
-        onlyOwner
+    external
+    onlyOwner
     {
         require(index < transactions.length, "index out of bounds");
 
@@ -225,8 +221,8 @@ contract XBNPolicy is OwnableUpgradeSafe {
      * @param enabled True for enabled, false for disabled.
      */
     function setTransactionEnabled(uint index, bool enabled)
-        external
-        onlyOwner
+    external
+    onlyOwner
     {
         require(index < transactions.length, "index must be in range of stored tx list");
         transactions[index].enabled = enabled;
@@ -235,9 +231,9 @@ contract XBNPolicy is OwnableUpgradeSafe {
      * @return Number of transactions, both enabled and disabled, in transactions list.
      */
     function transactionsSize()
-        external
-        view
-        returns (uint256)
+    external
+    view
+    returns (uint256)
     {
         return transactions.length;
     }
@@ -249,37 +245,32 @@ contract XBNPolicy is OwnableUpgradeSafe {
      * @return True on success
      */
     function externalCall(address destination, bytes memory data)
-        internal
-        returns (bool)
+    internal
+    returns (bool)
     {
         bool result;
-        assembly {  // solhint-disable-line no-inline-assembly
-            // "Allocate" memory for output
-            // (0x40 is where "free memory" pointer is stored by convention)
+        assembly {// solhint-disable-line no-inline-assembly
+        // "Allocate" memory for output
+        // (0x40 is where "free memory" pointer is stored by convention)
             let outputAddress := mload(0x40)
 
-            // First 32 bytes are the padded length of data, so exclude that
+        // First 32 bytes are the padded length of data, so exclude that
             let dataAddress := add(data, 32)
 
-
-
-
             result := call(
-                // 34710 is the value that solidity is currently emitting
-                // It includes callGas (700) + callVeryLow (3, to pay for SUB)
-                // + callValueTransferGas (9000) + callNewAccountGas
-                // (25000, in case the destination address does not exist and needs creating)
+            // 34710 is the value that solidity is currently emitting
+            // It includes callGas (700) + callVeryLow (3, to pay for SUB)
+            // + callValueTransferGas (9000) + callNewAccountGas
+            // (25000, in case the destination address does not exist and needs creating)
 
-                // https://solidity.readthedocs.io/en/v0.6.12/yul.html#yul
-                sub(gas() , 34710),
-
-
-                destination,
-                0, // transfer value in wei
-                dataAddress,
-                mload(data),  // Size of the input, in bytes. Stored in position 0 of the array.
-                outputAddress,
-                0  // Output is ignored, therefore the output size is zero
+            // https://solidity.readthedocs.io/en/v0.6.12/yul.html#yul
+            sub(gas(), 34710),
+            destination,
+            0, // transfer value in wei
+            dataAddress,
+            mload(data), // Size of the input, in bytes. Stored in position 0 of the array.
+            outputAddress,
+            0  // Output is ignored, therefore the output size is zero
             )
         }
         return result;
@@ -294,8 +285,8 @@ contract XBNPolicy is OwnableUpgradeSafe {
      * @param deviationThreshold_ The new exchange rate threshold fraction.
      */
     function setDeviationThreshold(uint256 deviationThreshold_)
-        external
-        onlyOwner
+    external
+    onlyOwner
     {
         deviationThreshold = deviationThreshold_;
     }
@@ -309,8 +300,8 @@ contract XBNPolicy is OwnableUpgradeSafe {
      * @param rebaseLag_ The new rebase lag parameter.
      */
     function setRebaseLag(uint256 rebaseLag_)
-        external
-        onlyOwner
+    external
+    onlyOwner
     {
         require(rebaseLag_ > 0);
         rebaseLag = rebaseLag_;
@@ -332,8 +323,8 @@ contract XBNPolicy is OwnableUpgradeSafe {
         uint256 minRebaseTimeIntervalSec_,
         uint256 rebaseWindowOffsetSec_,
         uint256 rebaseWindowLengthSec_)
-        external
-        onlyOwner
+    external
+    onlyOwner
     {
         require(minRebaseTimeIntervalSec_ > 0);
         require(rebaseWindowOffsetSec_ < minRebaseTimeIntervalSec_);
@@ -348,20 +339,24 @@ contract XBNPolicy is OwnableUpgradeSafe {
      *      It is called at the time of contract creation to invoke parent class initializers and
      *      initialize the contract's state variables.
      */
-    function initialize( XBN XBNs)
-        public
-        initializer
+    function initialize(XBN XBNs)
+    public
+    initializer
     {
 
         OwnableUpgradeSafe.__Ownable_init();
 
         // deviationThreshold = 0.05e8 = 5e6
-        deviationThreshold = 5 * 10 ** (DECIMALS-2);
+        deviationThreshold = 5 * 10 ** (DECIMALS - 2);
 
-        rebaseLag = 8 * 3 * 100; // 8 hours * 3 * 100 days
-        minRebaseTimeIntervalSec = 24 * 60 * 60; // 24 hours;
-        rebaseWindowOffsetSec = 0;  //
-        rebaseWindowLengthSec =  8 * 60 * 60;// 8 * 60 * 60 minutes;
+        rebaseLag = 8 * 3 * 100;
+        // 8 hours * 3 * 100 days
+        minRebaseTimeIntervalSec = 24 * 60 * 60;
+        // 24 hours;
+        rebaseWindowOffsetSec = 0;
+        //
+        rebaseWindowLengthSec = 8 * 60 * 60;
+        // 8 * 60 * 60 minutes;
         lastRebaseTimestampSec = 0;
         epoch = 0;
 
@@ -375,8 +370,8 @@ contract XBNPolicy is OwnableUpgradeSafe {
      */
     function inRebaseWindow() public view returns (bool) {
         return (
-            now.mod(minRebaseTimeIntervalSec) >= rebaseWindowOffsetSec &&
-            now.mod(minRebaseTimeIntervalSec) < (rebaseWindowOffsetSec.add(rebaseWindowLengthSec))
+        now.mod(minRebaseTimeIntervalSec) >= rebaseWindowOffsetSec &&
+        now.mod(minRebaseTimeIntervalSec) < (rebaseWindowOffsetSec.add(rebaseWindowLengthSec))
         );
     }
 
@@ -385,9 +380,9 @@ contract XBNPolicy is OwnableUpgradeSafe {
      *         and the targetRate.
      */
     function computeSupplyDelta(uint256 rate, uint256 targetRate)
-        private
-        view
-        returns (int256)
+    private
+    view
+    returns (int256)
     {
         if (withinDeviationThreshold(rate, targetRate)) {
             return 0;
@@ -396,7 +391,7 @@ contract XBNPolicy is OwnableUpgradeSafe {
 
         int256 targetRateSigned = targetRate.toInt256Safe();
 
-        int256 supply =  XBNs.totalSupply().toInt256Safe();
+        int256 supply = XBNs.totalSupply().toInt256Safe();
 
 
         return supply.mul(rate.toInt256Safe().sub(targetRateSigned).div(targetRateSigned));
@@ -409,14 +404,14 @@ contract XBNPolicy is OwnableUpgradeSafe {
      *         Otherwise, returns false.
      */
     function withinDeviationThreshold(uint256 rate, uint256 targetRate)
-        private
-        view
-        returns (bool)
+    private
+    view
+    returns (bool)
     {
         uint256 absoluteDeviationThreshold = targetRate.mul(deviationThreshold)
-            .div(10 ** DECIMALS);
+        .div(10 ** DECIMALS);
 
         return (rate >= targetRate && rate.sub(targetRate) < absoluteDeviationThreshold)
-            || (rate < targetRate && targetRate.sub(rate) < absoluteDeviationThreshold);
+        || (rate < targetRate && targetRate.sub(rate) < absoluteDeviationThreshold);
     }
 }
