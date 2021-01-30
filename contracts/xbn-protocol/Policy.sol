@@ -164,11 +164,11 @@ contract XBNPolicy is OwnableUpgradeSafe {
         // Apply the Dampening factor.
         supplyDelta = supplyDelta.div(rebaseLag.toInt256Safe());
 
-        if (supplyDelta > 0 && XTHs.totalSupply().add(uint256(supplyDelta)) > MAX_SUPPLY) {
-            supplyDelta = (MAX_SUPPLY.sub(XTHs.totalSupply())).toInt256Safe();
+        if (supplyDelta > 0 && XBNs.totalSupply().add(uint256(supplyDelta)) > MAX_SUPPLY) {
+            supplyDelta = (MAX_SUPPLY.sub(XBNs.totalSupply())).toInt256Safe();
         }
 
-        uint256 supplyAfterRebase = XTHs.rebase(epoch, supplyDelta);
+        uint256 supplyAfterRebase = XBNs.rebase(epoch, supplyDelta);
         assert(supplyAfterRebase <= MAX_SUPPLY);
         emit LogRebase(epoch, exchangeRate, supplyDelta, now);
 
@@ -348,7 +348,7 @@ contract XBNPolicy is OwnableUpgradeSafe {
      *      It is called at the time of contract creation to invoke parent class initializers and
      *      initialize the contract's state variables.
      */
-    function initialize( XTH XTHs_)
+    function initialize( XBN XBNs)
         public
         initializer
     {
@@ -365,7 +365,7 @@ contract XBNPolicy is OwnableUpgradeSafe {
         lastRebaseTimestampSec = 0;
         epoch = 0;
 
-        XTHs = XTHs_;
+        XBNs = XBNs;
 
     }
 
@@ -396,7 +396,7 @@ contract XBNPolicy is OwnableUpgradeSafe {
 
         int256 targetRateSigned = targetRate.toInt256Safe();
 
-        int256 supply =  XTHs.totalSupply().toInt256Safe();
+        int256 supply =  XBNs.totalSupply().toInt256Safe();
 
 
         return supply.mul(rate.toInt256Safe().sub(targetRateSigned).div(targetRateSigned));
