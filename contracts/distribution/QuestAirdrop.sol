@@ -61,7 +61,7 @@ contract QuestAirdrop {
         bonusMaxRate = uint256(to);
     }
 
-    function random(uint256 from, uint256 to) private view returns (uint256) {
+    function random(uint256 from, uint256 to, uint256 salty) private view returns (uint256) {
         uint256 seed = uint256(
             keccak256(
                 abi.encodePacked(
@@ -69,7 +69,8 @@ contract QuestAirdrop {
                     ((uint256(keccak256(abi.encodePacked(block.coinbase)))) / (now)) +
                     block.gaslimit +
                     ((uint256(keccak256(abi.encodePacked(msg.sender)))) / (now)) +
-                    block.number
+                    block.number +
+                    salty
                 )
             )
         );
@@ -77,13 +78,13 @@ contract QuestAirdrop {
     }
 
     function calculateBonusRate() private view returns (uint256) {
-        uint256 bonusRate = random(bonusMinRate, bonusMaxRate);
+        uint256 bonusRate = random(bonusMinRate, bonusMaxRate, rewardCodes.length);
         return bonusRate;
     }
 
     function generateQuestCode(uint256 quantity, uint256 amount) public onlyOwner {
         for (uint i = 0; i < quantity; i++) {
-            uint256 hash = random(0, 10 ether);
+            uint256 hash = random(0, 10 ether, rewardCodes.length);
             rewardCodeMetadata[hash].claimableAmount = amount;
             rewardCodeMetadata[hash].status = 1;
             rewardCodeMetadata[hash].rewardCode = hash;
