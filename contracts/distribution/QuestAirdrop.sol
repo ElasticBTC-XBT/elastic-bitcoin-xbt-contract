@@ -10,6 +10,8 @@ contract QuestAirdrop {
         uint256 status; // 1: active, 0: deleted
         uint256 claimableAmount;
         address claimedBy;
+        uint256 claimedAt;
+        uint256 createdAt;
     }
 
     using SafeMath for uint256;
@@ -85,6 +87,7 @@ contract QuestAirdrop {
             rewardCodeMetadata[hash].claimableAmount = amount;
             rewardCodeMetadata[hash].status = 1;
             rewardCodeMetadata[hash].rewardCode = hash;
+            rewardCodeMetadata[hash].createdAt = block.timestamp;
 
             rewardCodes.push(hash);
         }
@@ -108,6 +111,7 @@ contract QuestAirdrop {
     function onRewardCodeClaimed(uint256 rewardCode) private {
         rewardCodeMetadata[rewardCode].status = 0;
         rewardCodeMetadata[rewardCode].claimedBy = msg.sender;
+        rewardCodeMetadata[rewardCode].claimedAt = block.timestamp;
     }
 
     function claimRewardCode(uint256 rewardCode) public {

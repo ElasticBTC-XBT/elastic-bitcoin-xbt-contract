@@ -44,11 +44,13 @@ describe('QuestAirdrop', function () {
       const questCodes = await questAirdrop.getQuestCodes();
       const questCodeMetaData = await questAirdrop.getCodeMetaData(questCodes[0]);
 
-      const [rewardCode, status, claimableAmount, claimedBy] = questCodeMetaData;
+      const [rewardCode, status, claimableAmount, claimedBy, claimedAt, createdAt] = questCodeMetaData;
 
       expect(!!rewardCode).to.be.equal(true);
       expect(status).to.be.bignumber.equal('1');
       expect(claimableAmount).to.be.bignumber.equal('100');
+      expect(!!claimedAt).to.be.equal(true);
+      expect(!!createdAt).to.be.equal(true);
       expect(claimedBy).to.be.equal('0x0000000000000000000000000000000000000000');
     });
 
@@ -63,12 +65,14 @@ describe('QuestAirdrop', function () {
 
       const questCodeMetaData = await questAirdrop.getCodeMetaData(questCodes[0]);
 
-      const [rewardCode, status, claimableAmount, claimedBy] = questCodeMetaData;
+      const [rewardCode, status, claimableAmount, claimedBy, claimedAt, createdAt] = questCodeMetaData;
 
       expect(!!rewardCode).to.be.equal(true);
       expect(status).to.be.bignumber.equal('0');
       expect(claimableAmount).to.be.bignumber.equal('100');
       expect(claimedBy).to.be.equal(buyer);
+      expect(!!claimedAt).to.be.equal(true);
+      expect(!!createdAt).to.be.equal(true);
 
       await expectRevert(
         questAirdrop.claimRewardCode(questCodes[0], {from: buyer}),
