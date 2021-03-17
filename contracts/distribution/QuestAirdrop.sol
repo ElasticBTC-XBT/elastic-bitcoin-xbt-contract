@@ -24,7 +24,7 @@ contract QuestAirdrop {
     uint256[] public rewardCodes;
 
     modifier onlyOwner() {
-        require(msg.sender == owner, 'Only owner can handle this operation ;)');
+        require(msg.sender == owner, 'Error: Only owner can handle this operation ;)');
         _;
     }
 
@@ -44,8 +44,8 @@ contract QuestAirdrop {
         setBonusRate(_bonusMinRate, _bonusMaxRate);
     }
 
-    function setOwner(address owner) public onlyOwner {
-        owner = msg.sender;
+    function setOwner(address newOwner) public onlyOwner {
+        owner = newOwner;
     }
 
     function setBonusRate(uint256 from, uint256 to) public onlyOwner {

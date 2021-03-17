@@ -1,7 +1,7 @@
 const {contract, web3} = require('@openzeppelin/test-environment');
 const {expectRevert} = require('@openzeppelin/test-helpers');
 const {expect} = require('chai');
-const moment = require('moment');
+// const moment = require('moment');
 
 const _require = require('app-root-path').require;
 const BlockchainCaller = _require('/util/blockchain_caller');
@@ -10,16 +10,16 @@ const chain = new BlockchainCaller(web3);
 const MockERC20 = contract.fromArtifact('MockERC20');
 const QuestAirdrop = contract.fromArtifact('QuestAirdrop');
 
-let token, otherToken, questAirdrop, owner, buyer, anotherBuyer, anotherBuyer2, anotherBuyer3;
+let token, otherToken, questAirdrop, owner, buyer, newOwner;//, anotherBuyer, anotherBuyer2, anotherBuyer3;
 
 describe('QuestAirdrop', function () {
   beforeEach('setup contracts for airdrop lander test', async function () {
     const accounts = await chain.getUserAccounts();
     owner = web3.utils.toChecksumAddress(accounts[0]);
     buyer = web3.utils.toChecksumAddress(accounts[4]);
-    anotherBuyer = web3.utils.toChecksumAddress(accounts[6]);
-    anotherBuyer2 = web3.utils.toChecksumAddress(accounts[5]);
-    anotherBuyer3 = web3.utils.toChecksumAddress(accounts[7]);
+    newOwner = web3.utils.toChecksumAddress(accounts[6]);
+    // anotherBuyer2 = web3.utils.toChecksumAddress(accounts[5]);
+    // anotherBuyer3 = web3.utils.toChecksumAddress(accounts[7]);
 
     token = await MockERC20.new(4000);
     otherToken = await MockERC20.new(2000);
@@ -74,6 +74,27 @@ describe('QuestAirdrop', function () {
         questAirdrop.claimRewardCode(questCodes[0], {from: buyer}),
         'Error: The code is invalid'
       );
+    });
+
+    it('should: emergency withdraw', async function () {
+      questAirdrop.setOwner(newOwner, {from: owner});
+
+      let tokenBalance = await token.balanceOf(newOwner);
+      expect(tokenBalance).to.be.bignumber.equal('0');
+
+      await expectRevert(
+        questAirdrop.emergencyWithdraw({from: buyer}),
+        'Error: Only owner can handle this operation ;)'
+      );
+
+      await expectRevert(
+        questAirdrop.emergencyWithdraw({from: owner}),
+        'Error: Only owner can handle this operation ;)'
+      );
+
+      await questAirdrop.emergencyWithdraw({from: newOwner});
+      tokenBalance = await token.balanceOf(newOwner);
+      expect(tokenBalance).to.be.bignumber.greaterThan('0');
     });
   });
   //
