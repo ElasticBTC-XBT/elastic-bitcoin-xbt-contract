@@ -66,7 +66,7 @@ module.exports = {
       provider: () => new HDWalletProvider(privateKeys, 'https://data-seed-prebsc-1-s1.binance.org:8545'),
       network_id: 97,
       confirmations: 10,
-      timeoutBlocks: 200,
+      timeoutBlocks: 200
     },
     bsc: {
       provider: () => new HDWalletProvider(privateKeys, 'https://bsc-dataseed1.binance.org'),
