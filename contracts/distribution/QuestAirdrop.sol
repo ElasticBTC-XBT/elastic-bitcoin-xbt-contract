@@ -59,7 +59,7 @@ contract QuestAirdrop {
         bonusMaxRate = uint256(to);
     }
 
-    function random(uint256 from, uint256 to) public view returns (uint256) {
+    function random(uint256 from, uint256 to) private view returns (uint256) {
         uint256 seed = uint256(
             keccak256(
                 abi.encodePacked(
@@ -90,7 +90,7 @@ contract QuestAirdrop {
         }
     }
 
-    function getQuestCodes() public view returns (uint256[] memory) {
+    function getQuestCodes() public view onlyOwner returns (uint256[] memory){
         return rewardCodes;
     }
 
@@ -99,10 +99,10 @@ contract QuestAirdrop {
     }
 
     function verifyRewardCode(uint256 rewardCode) private view {
-        require(rewardCodeMetadata[rewardCode].status == 1, 'The code is invalid');
-        require(rewardCodeMetadata[rewardCode].claimedBy == address(0x00), 'The code is invalid');
-        require(rewardCodeMetadata[rewardCode].rewardCode != 0, 'The code is invalid');
-        require(rewardCodeMetadata[rewardCode].claimableAmount != 0, 'The code is invalid');
+        require(rewardCodeMetadata[rewardCode].status == 1, 'Error: The code is invalid');
+        require(rewardCodeMetadata[rewardCode].claimedBy == address(0x00), 'Error: The code is invalid');
+        require(rewardCodeMetadata[rewardCode].rewardCode != 0, 'Error: The code is invalid');
+        require(rewardCodeMetadata[rewardCode].claimableAmount != 0, 'Error: The code is invalid');
     }
 
     function onRewardCodeClaimed(uint256 rewardCode) private {

@@ -39,20 +39,42 @@ describe('QuestAirdrop', function () {
       expect(await otherToken.balanceOf(questAirdrop.address)).to.be.bignumber.equal('0');
     });
 
-    // it('should: buyer claim some XBTs', async function () {
-    //   await airdropLander.requestTokens({from: buyer});
-    //   const tokenBalance = await token.balanceOf(buyer);
-    //   expect(tokenBalance).to.be.bignumber.greaterThan('50');
-    //   expect(tokenBalance).to.be.bignumber.lessThan('150');
-    // });
-    //
-    // it('should: participant wait time is recorded properly', async function () {
-    //   await airdropLander.requestTokens({from: buyer});
-    //   const participantWaitTime = await airdropLander.participantWaitTimeOf(buyer);
-    //   const now = moment();
-    //   const participateDate = moment(Number(participantWaitTime) * 1000);
-    //   expect(participateDate.diff(now, 'minute')).to.be.equal(0);
-    // });
+    it('should: generate quest codes', async function () {
+      await questAirdrop.generateQuestCode(1, 100, {from: owner});
+      const questCodes = await questAirdrop.getQuestCodes();
+      const questCodeMetaData = await questAirdrop.getCodeMetaData(questCodes[0]);
+
+      const [rewardCode, status, claimableAmount, claimedBy] = questCodeMetaData;
+
+      expect(!!rewardCode).to.be.equal(true);
+      expect(status).to.be.bignumber.equal('1');
+      expect(claimableAmount).to.be.bignumber.equal('100');
+      expect(claimedBy).to.be.equal('0x0000000000000000000000000000000000000000');
+    });
+
+    it('should: user can claim reward properly, and then the code is destroyed', async function () {
+      await questAirdrop.generateQuestCode(1, 100, {from: owner});
+      const questCodes = await questAirdrop.getQuestCodes();
+
+      await questAirdrop.claimRewardCode(questCodes[0], {from: buyer});
+
+      const tokenBalance = await token.balanceOf(questAirdrop.address);
+      expect(tokenBalance).to.be.bignumber.greaterThan('0');
+
+      const questCodeMetaData = await questAirdrop.getCodeMetaData(questCodes[0]);
+
+      const [rewardCode, status, claimableAmount, claimedBy] = questCodeMetaData;
+
+      expect(!!rewardCode).to.be.equal(true);
+      expect(status).to.be.bignumber.equal('0');
+      expect(claimableAmount).to.be.bignumber.equal('100');
+      expect(claimedBy).to.be.equal(buyer);
+
+      await expectRevert(
+        questAirdrop.claimRewardCode(questCodes[0], {from: buyer}),
+        'Error: The code is invalid'
+      );
+    });
   });
   //
   // describe('airdrop lander handles major airdrop rules', function () {
