@@ -41,8 +41,11 @@ describe('QuestAirdrop', function () {
 
     it('should: generate quest codes', async function () {
       await questAirdrop.generateQuestCode(1, 100, {from: owner});
-      const questCodes = await questAirdrop.getQuestCodes();
-      const questCodeMetaData = await questAirdrop.getCodeMetaData(questCodes[0]);
+      const rewardCodeLength = await questAirdrop.getQuestCodeLength();
+      const rewardCodeIndex = (rewardCodeLength - 1).toString();
+      const questCodeMetaData = await questAirdrop.getCodeMetaData(
+        rewardCodeIndex
+      );
 
       const [rewardCode, status, claimableAmount, claimedBy, claimedAt, createdAt] = questCodeMetaData;
 
@@ -56,18 +59,26 @@ describe('QuestAirdrop', function () {
 
     it('should: user can claim reward properly, and then the code is destroyed', async function () {
       await questAirdrop.generateQuestCode(1, 100, {from: owner});
-      const questCodes = await questAirdrop.getQuestCodes();
+      const rewardCodeLength = await questAirdrop.getQuestCodeLength();
 
-      await questAirdrop.claimRewardCode(questCodes[0], {from: buyer});
+      const questCodeMetaData = await questAirdrop.getCodeMetaData(
+        (rewardCodeLength - 1).toString()
+      );
+
+      const [rewardCode] = questCodeMetaData;
+
+      await questAirdrop.claimRewardCode(rewardCode, {from: buyer});
+
+      const updatedQuestCodeMetaData = await questAirdrop.getCodeMetaData(
+        (rewardCodeLength - 1).toString()
+      );
+
+      const [_rewardCode, status, claimableAmount, claimedBy, claimedAt, createdAt] = updatedQuestCodeMetaData;
 
       const tokenBalance = await token.balanceOf(questAirdrop.address);
       expect(tokenBalance).to.be.bignumber.greaterThan('0');
 
-      const questCodeMetaData = await questAirdrop.getCodeMetaData(questCodes[0]);
-
-      const [rewardCode, status, claimableAmount, claimedBy, claimedAt, createdAt] = questCodeMetaData;
-
-      expect(!!rewardCode).to.be.equal(true);
+      expect(!!_rewardCode).to.be.equal(true);
       expect(status).to.be.bignumber.equal('0');
       expect(claimableAmount).to.be.bignumber.equal('100');
       expect(claimedBy).to.be.equal(buyer);
@@ -75,7 +86,7 @@ describe('QuestAirdrop', function () {
       expect(!!createdAt).to.be.equal(true);
 
       await expectRevert(
-        questAirdrop.claimRewardCode(questCodes[0], {from: buyer}),
+        questAirdrop.claimRewardCode(rewardCode, {from: buyer}),
         'Error: The code is invalid'
       );
     });

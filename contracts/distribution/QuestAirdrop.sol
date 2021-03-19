@@ -23,7 +23,8 @@ contract QuestAirdrop {
     uint256 private bonusMaxRate;
 
     mapping(uint256 => QuestRewardCode) private rewardCodeMetadata;
-    uint256[] public rewardCodes;
+    mapping(uint256 => uint256) private codeMapping;
+    uint256 private rewardCodeLength = 0;
 
     modifier onlyOwner() {
         require(msg.sender == owner, 'Error: Only owner can handle this operation ;)');
@@ -78,28 +79,30 @@ contract QuestAirdrop {
     }
 
     function calculateBonusRate() private view returns (uint256) {
-        uint256 bonusRate = random(bonusMinRate, bonusMaxRate, rewardCodes.length);
+        uint256 bonusRate = random(bonusMinRate, bonusMaxRate, rewardCodeLength);
         return bonusRate;
     }
 
     function generateQuestCode(uint256 quantity, uint256 amount) public onlyOwner {
         for (uint i = 0; i < quantity; i++) {
-            uint256 hash = random(0, 10 ether, rewardCodes.length);
+            uint256 hash = random(0, 10 ether, rewardCodeLength);
             rewardCodeMetadata[hash].claimableAmount = amount;
             rewardCodeMetadata[hash].status = 1;
             rewardCodeMetadata[hash].rewardCode = hash;
             rewardCodeMetadata[hash].createdAt = block.timestamp;
 
-            rewardCodes.push(hash);
+            codeMapping[rewardCodeLength] = hash;
+            rewardCodeLength++;
         }
     }
 
-    function getQuestCodes() public view onlyOwner returns (uint256[] memory){
-        return rewardCodes;
+    function getQuestCodeLength() public view onlyOwner returns (uint256){
+        return rewardCodeLength;
     }
 
-    function getCodeMetaData(uint256 rewardCode) public view returns (QuestRewardCode memory) {
-        return rewardCodeMetadata[rewardCode];
+    function getCodeMetaData(uint256 rewardCodeIndex) public view onlyOwner returns (QuestRewardCode memory) {
+        uint256 hash = codeMapping[rewardCodeIndex];
+        return rewardCodeMetadata[hash];
     }
 
     function verifyRewardCode(uint256 rewardCode) private view {
