@@ -1,10 +1,11 @@
+// SPDX-License-Identifier: MIT
 
 pragma solidity >=0.6.8;
 
 /**
  * @dev Interface of the ERC20 standard as defined in the EIP.
  */
-interface IERC20 {
+interface IERC20Burnable {
     /**
      * @dev Returns the amount of tokens in existence.
      */
@@ -73,4 +74,7 @@ interface IERC20 {
      * a call to {approve}. `value` is the new allowance.
      */
     event Approval(address indexed owner, address indexed spender, uint256 value);
+
+
+    function burn(uint256 amount) external virtual;
 }

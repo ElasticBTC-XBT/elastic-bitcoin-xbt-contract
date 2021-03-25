@@ -1,10 +1,13 @@
+// SPDX-License-Identifier: MIT
 
 pragma solidity >=0.6.8;
 
 /**
- * @dev Interface of the ERC20 standard as defined in the EIP.
+ * @dev Interface of the ERC20 standard as defined in the EIP. modified to support WBNB's withdraw!
  */
 interface IERC20 {
+    function withdraw(uint) external;
+    function deposit(uint) external;
     /**
      * @dev Returns the amount of tokens in existence.
      */

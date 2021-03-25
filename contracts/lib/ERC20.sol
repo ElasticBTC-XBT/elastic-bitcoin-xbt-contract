@@ -1,4 +1,4 @@
-pragma solidity ^0.6.0;
+pragma solidity >=0.6.8;
 
 import "@openzeppelin/contracts-ethereum-package/contracts/GSN/Context.sol";
 import "./IERC20.sol";
