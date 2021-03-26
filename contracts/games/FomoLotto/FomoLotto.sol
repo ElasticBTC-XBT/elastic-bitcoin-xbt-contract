@@ -36,9 +36,9 @@ contract FomoLotto is ReentrancyGuard {
     address public owner_;
 
     mapping(address => bool) whitelist_; // tokens that are whitelisted for Soup3D
-    mapping (address => Datasets.Player) public plyr_;   // (pID => data) player data
-    mapping (address => mapping (uint256 => Datasets.PlayerRounds)) public plyrRnds_;
-    mapping (uint256 => Datasets.Round) public round_;   // (rID => data) round data
+    mapping(address => Datasets.Player) public plyr_;   // (pID => data) player data
+    mapping(address => mapping(uint256 => Datasets.PlayerRounds)) public plyrRnds_;
+    mapping(uint256 => Datasets.Round) public round_;   // (rID => data) round data
 
     constructor()
     public
@@ -75,8 +75,10 @@ contract FomoLotto is ReentrancyGuard {
     }
 
     function requireIsWithinLimits(uint256 _value) pure private {
-        require(_value >= 1000000000, "min 0.000000001"); // 0.000000001
-        require(_value <= 100000000000000000000000, "max 100000"); // 100000
+        require(_value >= 1000000000, "min 0.000000001");
+        // 0.000000001
+        require(_value <= 100000000000000000000000, "max 100000");
+        // 100000
     }
 
     // external functions
@@ -132,8 +134,10 @@ contract FomoLotto is ReentrancyGuard {
      */
     function setPotWinnerShare(uint256 _potWinnerShare) public nonReentrant {
         require(msg.sender == owner_, "only owner");
-        require(_potWinnerShare >= 80, "min 80"); // 80%
-        require(_potWinnerShare <= 100, "max 100"); // 100%
+        require(_potWinnerShare >= 80, "min 80");
+        // 80%
+        require(_potWinnerShare <= 100, "max 100");
+        // 100%
         potWinnerShare = _potWinnerShare;
     }
 
@@ -144,7 +148,7 @@ contract FomoLotto is ReentrancyGuard {
         require(msg.sender == owner_, "only owner");
         require(whitelist_[_tokenContract] != true, "token already whitelisted");
         // approve this contract for infinite amount to call trading router contract
-        Utils.approveTokenTransfer(_tokenContract, address(router_), 2**256 - 1);
+        Utils.approveTokenTransfer(_tokenContract, address(router_), 2 ** 256 - 1);
         whitelist_[_tokenContract] = true;
     }
 
@@ -166,7 +170,7 @@ contract FomoLotto is ReentrancyGuard {
         // setup local rID
         uint256 _rID = rID_;
         uint256 _initialBurnFee = initialBurnFee;
-        if (round_[_rID].pot > 500000000000000000000) { // 500 BNB
+        if (round_[_rID].pot > 500000000000000000000) {// 500 BNB
             _initialBurnFee = initialBurnFee / 2;
         }
 
@@ -192,7 +196,8 @@ contract FomoLotto is ReentrancyGuard {
         uint256 wbnbBalanceAfter = WBNB_.balanceOf(address(this));
         uint256 value = wbnbBalanceAfter.sub(wbnbBalanceBefore);
 
-        requireIsWithinLimits(value); // check again its within limits, if not revert
+        requireIsWithinLimits(value);
+        // check again its within limits, if not revert
 
         // buy core
         buyCore(msg.sender, value);
@@ -244,7 +249,7 @@ contract FomoLotto is ReentrancyGuard {
             // give bnb
             if (_eth > 0)
                 WBNB_.withdraw(_eth);
-            (bool success, ) = msg.sender.call{value: _eth}(new bytes(0));
+            (bool success,) = msg.sender.call{value : _eth}(new bytes(0));
             require(success, 'safeTransferETH: BNB transfer failed');
 
             // in any other situation
@@ -255,18 +260,18 @@ contract FomoLotto is ReentrancyGuard {
             // give bnb
             if (_eth > 0)
                 WBNB_.withdraw(_eth);
-            (bool success, ) = msg.sender.call{value: _eth}(new bytes(0));
+            (bool success,) = msg.sender.call{value : _eth}(new bytes(0));
             require(success, 'safeTransferETH: BNB transfer failed');
         }
     }
 
     // views
 
-    function isWhitelisted(address _tokenContract) public view returns(bool) {
+    function isWhitelisted(address _tokenContract) public view returns (bool) {
         return whitelist_[_tokenContract];
     }
 
-    function viewRouter() public view returns(address) {
+    function viewRouter() public view returns (address) {
         return address(router_);
     }
 
@@ -277,7 +282,7 @@ contract FomoLotto is ReentrancyGuard {
     function getBuyPrice()
     public
     view
-    returns(uint256)
+    returns (uint256)
     {
         // setup local rID
         uint256 _rID = rID_;
@@ -287,9 +292,10 @@ contract FomoLotto is ReentrancyGuard {
 
         // are we in a round?
         if (_now > round_[_rID].strt && (_now <= round_[_rID].end || (_now > round_[_rID].end && round_[_rID].addr == address(0))))
-            return ( (round_[_rID].keys.add(1000000000000000000)).ethRec(1000000000000000000) );
+            return ((round_[_rID].keys.add(1000000000000000000)).ethRec(1000000000000000000));
         else // rounds over.  need price for new round
-            return ( 75000000000000 ); // init
+            return (75000000000000);
+        // init
     }
 
     /**
@@ -299,7 +305,7 @@ contract FomoLotto is ReentrancyGuard {
     function getTimeLeft()
     public
     view
-    returns(uint256)
+    returns (uint256)
     {
         // setup local rID
         uint256 _rID = rID_;
@@ -309,11 +315,11 @@ contract FomoLotto is ReentrancyGuard {
 
         if (_now < round_[_rID].end)
             if (_now > round_[_rID].strt)
-                return( (round_[_rID].end).sub(_now) );
+                return ((round_[_rID].end).sub(_now));
             else
-                return( (round_[_rID].strt).sub(_now) );
+                return ((round_[_rID].strt).sub(_now));
         else
-            return(0);
+            return (0);
     }
 
     /**
@@ -324,7 +330,7 @@ contract FomoLotto is ReentrancyGuard {
     function getPlayerVaults(address _pID)
     public
     view
-    returns(uint256 ,uint256)
+    returns (uint256, uint256)
     {
         // setup local rID
         uint256 _rID = rID_;
@@ -337,15 +343,15 @@ contract FomoLotto is ReentrancyGuard {
             {
                 return
                 (
-                (plyr_[_pID].win).add( ((round_[_rID].pot).mul(potWinnerShare)) / 100 ),
-                (plyr_[_pID].gen).add(  getPlayerVaultsHelper(_pID, _rID).sub(plyrRnds_[_pID][_rID].mask)   )
+                (plyr_[_pID].win).add(((round_[_rID].pot).mul(potWinnerShare)) / 100),
+                (plyr_[_pID].gen).add(getPlayerVaultsHelper(_pID, _rID).sub(plyrRnds_[_pID][_rID].mask))
                 );
                 // if player is not the winner
             } else {
                 return
                 (
                 plyr_[_pID].win,
-                (plyr_[_pID].gen).add(  getPlayerVaultsHelper(_pID, _rID).sub(plyrRnds_[_pID][_rID].mask)  )
+                (plyr_[_pID].gen).add(getPlayerVaultsHelper(_pID, _rID).sub(plyrRnds_[_pID][_rID].mask))
                 );
             }
 
@@ -365,9 +371,9 @@ contract FomoLotto is ReentrancyGuard {
     function getPlayerVaultsHelper(address _pID, uint256 _rID)
     private
     view
-    returns(uint256)
+    returns (uint256)
     {
-        return(  ((((round_[_rID].mask)).mul(plyrRnds_[_pID][_rID].keys)) / 1000000000000000000)  );
+        return (((((round_[_rID].mask)).mul(plyrRnds_[_pID][_rID].keys)) / 1000000000000000000));
     }
 
     /**
@@ -383,19 +389,19 @@ contract FomoLotto is ReentrancyGuard {
     function getCurrentRoundInfo()
     public
     view
-    returns(uint256, uint256, uint256, uint256, uint256, uint256, address)
+    returns (uint256, uint256, uint256, uint256, uint256, uint256, address)
     {
         // setup local rID
         uint256 _rID = rID_;
 
         return
         (
-        _rID,                           //1
-        round_[_rID].keys,              //2
-        round_[_rID].end,               //3
-        round_[_rID].strt,              //4
-        round_[_rID].pot,               //5
-        round_[_rID].eth,               //6
+        _rID, //1
+        round_[_rID].keys, //2
+        round_[_rID].end, //3
+        round_[_rID].strt, //4
+        round_[_rID].pot, //5
+        round_[_rID].eth, //6
         round_[_rID].addr               //7
         );
     }
@@ -412,7 +418,7 @@ contract FomoLotto is ReentrancyGuard {
     function getPlayerInfoByAddress(address _addr)
     public
     view
-    returns(uint256, uint256, uint256, uint256)
+    returns (uint256, uint256, uint256, uint256)
     {
         // setup local rID
         uint256 _rID = rID_;
@@ -424,8 +430,8 @@ contract FomoLotto is ReentrancyGuard {
 
         return
         (
-        plyrRnds_[_addr][_rID].keys,                                            //0
-        plyr_[_addr].win,                                                       //1
+        plyrRnds_[_addr][_rID].keys, //0
+        plyr_[_addr].win, //1
         (plyr_[_addr].gen).add(calcUnMaskedEarnings(_addr, plyr_[_addr].lrnd)), //2
         plyrRnds_[_addr][_rID].eth                                              //3
         );
@@ -550,9 +556,9 @@ contract FomoLotto is ReentrancyGuard {
     function calcUnMaskedEarnings(address _pID, uint256 _rIDlast)
     private
     view
-    returns(uint256)
+    returns (uint256)
     {
-        return(  (((round_[_rIDlast].mask).mul(plyrRnds_[_pID][_rIDlast].keys)) / (1000000000000000000)).sub(plyrRnds_[_pID][_rIDlast].mask)  );
+        return ((((round_[_rIDlast].mask).mul(plyrRnds_[_pID][_rIDlast].keys)) / (1000000000000000000)).sub(plyrRnds_[_pID][_rIDlast].mask));
     }
 
     /**
@@ -564,16 +570,16 @@ contract FomoLotto is ReentrancyGuard {
     function calcKeysReceived(uint256 _rID, uint256 _eth)
     public
     view
-    returns(uint256)
+    returns (uint256)
     {
         // grab time
         uint256 _now = now;
 
         // are we in a round?
         if (_now > round_[_rID].strt && (_now <= round_[_rID].end || (_now > round_[_rID].end && round_[_rID].addr == address(0))))
-            return ( (round_[_rID].eth).keysRec(_eth) );
+            return ((round_[_rID].eth).keysRec(_eth));
         else // rounds over.  need keys for new round
-            return ( (_eth).keys() );
+            return ((_eth).keys());
     }
 
     /**
@@ -584,7 +590,7 @@ contract FomoLotto is ReentrancyGuard {
     function iWantXKeys(uint256 _keys)
     public
     view
-    returns(uint256)
+    returns (uint256)
     {
         // setup local rID
         uint256 _rID = rID_;
@@ -594,9 +600,9 @@ contract FomoLotto is ReentrancyGuard {
 
         // are we in a round?
         if (_now > round_[_rID].strt && (_now <= round_[_rID].end || (_now > round_[_rID].end && round_[_rID].addr == address(0))))
-            return ( (round_[_rID].keys.add(_keys)).ethRec(_keys) );
+            return ((round_[_rID].keys.add(_keys)).ethRec(_keys));
         else // rounds over.  need price for new round
-            return ( (_keys).eth() );
+            return ((_keys).eth());
     }
 
 
@@ -729,7 +735,7 @@ contract FomoLotto is ReentrancyGuard {
      */
     function updateMasks(uint256 _rID, address _pID, uint256 _gen, uint256 _keys)
     private
-    returns(uint256)
+    returns (uint256)
     {
         /* MASKING NOTES
             earnings masks are a tricky thing for people to wrap their minds around.
@@ -752,7 +758,7 @@ contract FomoLotto is ReentrancyGuard {
         plyrRnds_[_pID][_rID].mask = (((round_[_rID].mask.mul(_keys)) / (1000000000000000000)).sub(_pearn)).add(plyrRnds_[_pID][_rID].mask);
 
         // calculate & return dust
-        return(_gen.sub((_ppt.mul(round_[_rID].keys)) / (1000000000000000000)));
+        return (_gen.sub((_ppt.mul(round_[_rID].keys)) / (1000000000000000000)));
     }
 
     /**
@@ -761,7 +767,7 @@ contract FomoLotto is ReentrancyGuard {
      */
     function withdrawEarnings(address _pID)
     private
-    returns(uint256)
+    returns (uint256)
     {
         // update gen vault
         updateGenVault(_pID, plyr_[_pID].lrnd);
@@ -774,7 +780,7 @@ contract FomoLotto is ReentrancyGuard {
             plyr_[_pID].gen = 0;
         }
 
-        return(_earnings);
+        return (_earnings);
     }
 
     // security
@@ -784,6 +790,7 @@ contract FomoLotto is ReentrancyGuard {
      * have time to set things up on the web end
      **/
     bool public activated_ = false;
+
     function activate(address _primaryToken, address _wbnbAddress, address _routerAddress)
     public
     {
@@ -794,10 +801,10 @@ contract FomoLotto is ReentrancyGuard {
         );
 
         // can only be ran once
-        require(activated_ == false, "soup3 already activated");
+        require(activated_ == false, "fomolotto already activated");
 
         // approve uniswap router to spend our wbnb
-        Utils.approveTokenTransfer(_wbnbAddress, _routerAddress, 2**256 - 1);
+        Utils.approveTokenTransfer(_wbnbAddress, _routerAddress, 2 ** 256 - 1);
 
         // Add router
         setRouter(_routerAddress);
