@@ -29,14 +29,14 @@ contract FomoLotto is ReentrancyGuard {
     uint256 public potWinnerShare = 80;  // represent the pot allocation percentage to winner
 
     IERC20 public WBNB_;
-    IERC20Burnable public primaryToken_; // primary token accepted for Soup3D
+    IERC20Burnable public primaryToken_; // primary token accepted for FomoLotto
     UniswapRouterV2 public router_;      // pancake router
 
     uint256 public rID_;      // round id number / total rounds that have happened
     uint256 public burnFund_; // burn fund
     address public owner_;
 
-    mapping(address => bool) whitelist_; // tokens that are whitelisted for Soup3D
+    mapping(address => bool) whitelist_; // tokens that are whitelisted for FomoLotto
     mapping(address => Datasets.Player) public plyr_;   // (pID => data) player data
     mapping(address => mapping(uint256 => Datasets.PlayerRounds)) public plyrRnds_;
     mapping(uint256 => Datasets.Round) public round_;   // (rID => data) round data
@@ -60,7 +60,7 @@ contract FomoLotto is ReentrancyGuard {
     }
 
     /**
-     * @dev prevents contracts from interacting with soup3d
+     * @dev prevents contracts from interacting with FomoLotto
      */
     modifier isHuman() {
         require(tx.origin == msg.sender, "sorry humans only");
@@ -110,21 +110,21 @@ contract FomoLotto is ReentrancyGuard {
     }
 
     /**
-     * @dev sets the uniswap router for Soup3D
+     * @dev sets the uniswap router for FomoLotto
      */
     function setRouter(address _routerAddress) private nonReentrant {
         router_ = UniswapRouterV2(_routerAddress);
     }
 
     /**
-     * @dev sets the wbnb address for Soup3D
+     * @dev sets the wbnb address for FomoLotto
      */
     function setWBNB(address _wbnbAddress) private nonReentrant {
         WBNB_ = IERC20(_wbnbAddress);
     }
 
     /**
-     * @dev sets the primary token used for Soup3D purchases
+     * @dev sets the primary token used for FomoLotto purchases
      */
     function setPrimaryToken(address _primaryTokenAddress) private nonReentrant {
         primaryToken_ = IERC20Burnable(_primaryTokenAddress);
@@ -143,7 +143,7 @@ contract FomoLotto is ReentrancyGuard {
     }
 
     /**
-     * @dev whitelist BEP20 token for Soup3D
+     * @dev whitelist BEP20 token for FomoLotto
      */
     function addWhitelist(address _tokenContract) public nonReentrant {
         require(msg.sender == owner_, "only owner");
