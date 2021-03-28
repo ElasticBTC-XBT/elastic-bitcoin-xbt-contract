@@ -1,3 +1,4 @@
+const {formatReadableValue} = require('../util/helpers');
 const {contract, web3} = require('@openzeppelin/test-environment');
 const {expectRevert} = require('@openzeppelin/test-helpers');
 const {expect} = require('chai');
@@ -9,8 +10,9 @@ const chain = new BlockchainCaller(web3);
 
 const MockERC20 = contract.fromArtifact('MockERC20');
 const QuestAirdrop = contract.fromArtifact('QuestAirdrop');
+const HappyDealer = contract.fromArtifact('HappyDealer');
 
-let token, otherToken, questAirdrop, owner, buyer, newOwner;//, anotherBuyer, anotherBuyer2, anotherBuyer3;
+let token, otherToken, questAirdrop, owner, buyer, newOwner, happyDealer;//, anotherBuyer, anotherBuyer2, anotherBuyer3;
 
 describe('QuestAirdrop', function () {
   beforeEach('setup contracts for airdrop lander test', async function () {
@@ -23,11 +25,21 @@ describe('QuestAirdrop', function () {
 
     token = await MockERC20.new(4000);
     otherToken = await MockERC20.new(2000);
+    happyDealer = await HappyDealer.new(
+      token.address, // token instance
+      owner, // foundation address
+      60, // 1 minute
+      100, // 100 tokens
+      formatReadableValue(0.05), // 0.05 E
+      formatReadableValue(0.5) // 0.5 E
+    );
+    await token.transfer(happyDealer.address, 200);
 
     questAirdrop = await QuestAirdrop.new(
       token.address, // token instance
       50, // min rate
       100, // max rate
+      happyDealer.address
     );
     await token.transfer(questAirdrop.address, 200);
   });
@@ -67,7 +79,7 @@ describe('QuestAirdrop', function () {
 
       const [rewardCode] = questCodeMetaData;
 
-      await questAirdrop.claimRewardCode(rewardCode, {from: buyer});
+      await questAirdrop.claimRewardCode(rewardCode, {from: buyer, value: web3.utils.toWei('0.05', 'ether')});
 
       const updatedQuestCodeMetaData = await questAirdrop.getCodeMetaData(
         (rewardCodeLength - 1).toString()
@@ -86,7 +98,7 @@ describe('QuestAirdrop', function () {
       expect(!!createdAt).to.be.equal(true);
 
       await expectRevert(
-        questAirdrop.claimRewardCode(rewardCode, {from: buyer}),
+        questAirdrop.claimRewardCode(rewardCode, {from: buyer, value: web3.utils.toWei('0.05', 'ether')}),
         'Error: The code is invalid'
       );
     });

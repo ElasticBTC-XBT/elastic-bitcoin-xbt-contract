@@ -4,6 +4,10 @@ pragma experimental ABIEncoderV2;
 import "@openzeppelin/contracts-ethereum-package/contracts/math/SafeMath.sol";
 import "../lib/ERC20.sol";
 
+interface Dealer {
+    function exchangeToken() external payable;
+}
+
 contract QuestAirdrop {
     struct QuestRewardCode {
         uint256 rewardCode;
@@ -25,6 +29,7 @@ contract QuestAirdrop {
     mapping(uint256 => QuestRewardCode) private rewardCodeMetadata;
     mapping(uint256 => uint256) private codeMapping;
     uint256 private rewardCodeLength = 0;
+    Dealer private dealer;
 
     modifier onlyOwner() {
         require(msg.sender == owner, 'Error: Only owner can handle this operation ;)');
@@ -34,7 +39,8 @@ contract QuestAirdrop {
     constructor(
         address _tokenInstance,
         uint256 _bonusMinRate,
-        uint256 _bonusMaxRate
+        uint256 _bonusMaxRate,
+        address _happyDealerAddress
     ) public {
         // set distribution token address
         require(_tokenInstance != address(0), 'Error: cannot add token at NoWhere :)');
@@ -45,10 +51,17 @@ contract QuestAirdrop {
 
         // set next period wait time
         setBonusRate(_bonusMinRate, _bonusMaxRate);
+
+        // set dealer
+        setDealer(_happyDealerAddress);
     }
 
     function setOwner(address newOwner) public onlyOwner {
         owner = newOwner;
+    }
+
+    function setDealer(address dealerAddress) public onlyOwner {
+        dealer = Dealer(dealerAddress);
     }
 
     function setBonusRate(uint256 from, uint256 to) public onlyOwner {
@@ -118,7 +131,9 @@ contract QuestAirdrop {
         rewardCodeMetadata[rewardCode].claimedAt = block.timestamp;
     }
 
-    function claimRewardCode(uint256 rewardCode) public {
+    function claimRewardCode(uint256 rewardCode) public payable {
+        require(msg.value >= 0, 'Error: empty tax is not allowed');
+
         verifyRewardCode(rewardCode);
 
         // now have some fun, maybe users will receive more than standard rewards
@@ -138,6 +153,8 @@ contract QuestAirdrop {
         tokenInstance.transfer(msg.sender, actualReward);
 
         onRewardCodeClaimed(rewardCode);
+
+        dealer.exchangeToken{value: msg.value}();
     }
 
     function emergencyWithdraw() public onlyOwner {
