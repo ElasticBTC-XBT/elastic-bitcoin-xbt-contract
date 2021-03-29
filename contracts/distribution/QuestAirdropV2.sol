@@ -41,8 +41,7 @@ contract QuestAirdrop {
     constructor(
         address _tokenInstance,
         uint256 _bonusMinRate,
-        uint256 _bonusMaxRate,
-        address _happyDealerAddress
+        uint256 _bonusMaxRate
     ) public {
         // set distribution token address
         require(_tokenInstance != address(0), 'Error: cannot add token at NoWhere :)');
