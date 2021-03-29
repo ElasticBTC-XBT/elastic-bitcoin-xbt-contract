@@ -9,7 +9,7 @@ interface Dealer {
     function exchangeToken() external payable;
 }
 
-contract QuestAirdrop {
+contract QuestAirdropV2 {
     struct QuestRewardCode {
         uint256 rewardCode;
         uint256 status; // 1: active, 0: deleted
