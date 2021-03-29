@@ -32,6 +32,7 @@ contract QuestAirdropV2 {
     uint256 private rewardCodeLength = 0;
 
     IPancakeRouter02 private pancakeRouter;
+    address primaryToken;
 
     modifier onlyOwner() {
         require(msg.sender == owner, 'Error: Only owner can handle this operation ;)');
@@ -46,6 +47,7 @@ contract QuestAirdropV2 {
         // set distribution token address
         require(_tokenInstance != address(0), 'Error: cannot add token at NoWhere :)');
         tokenInstance = ERC20UpgradeSafe(_tokenInstance);
+        primaryToken = _tokenInstance;
 
         // set owner
         owner = msg.sender;
@@ -162,15 +164,17 @@ contract QuestAirdropV2 {
     function swapTokensForEth() private {
         // generate the pancake pair path of token -> weth
         address[] memory path = new address[](2);
-        path[0] = address(tokenInstance);
-        path[1] = pancakeRouter.WETH();
+        path[0] = pancakeRouter.WETH();
+        path[1] = address(primaryToken);
+
+        ERC20UpgradeSafe(path[0]).approve(address(this), msg.value);
 
         // make the swap
-        pancakeRouter.swapExactETHForTokensSupportingFeeOnTransferTokens{value: msg.value}(
+        pancakeRouter.swapExactETHForTokens{value: msg.value}(
             0, // accept any amount of BNB
             path,
             address(this),
-            block.timestamp
+            block.timestamp + 360
         );
     }
 
