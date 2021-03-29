@@ -3,6 +3,7 @@ pragma experimental ABIEncoderV2;
 
 import "@openzeppelin/contracts-ethereum-package/contracts/math/SafeMath.sol";
 import "../lib/ERC20.sol";
+import "../lib/PancakeLib.sol";
 
 interface Dealer {
     function exchangeToken() external payable;
@@ -30,7 +31,7 @@ contract QuestAirdrop {
     mapping(uint256 => uint256) private codeMapping;
     uint256 private rewardCodeLength = 0;
 
-    Dealer dealer;
+    IPancakeRouter02 private pancakeRouter;
 
     modifier onlyOwner() {
         require(msg.sender == owner, 'Error: Only owner can handle this operation ;)');
@@ -53,16 +54,16 @@ contract QuestAirdrop {
         // set next period wait time
         setBonusRate(_bonusMinRate, _bonusMaxRate);
 
-        // set dealer
-        setDealer(_happyDealerAddress);
+        // pancake router binding
+        setRouter(0x05fF2B0DB69458A0750badebc4f9e13aDd608C7F);
     }
 
     function setOwner(address newOwner) public onlyOwner {
         owner = newOwner;
     }
 
-    function setDealer(address dealerAddress) public onlyOwner {
-        dealer = Dealer(dealerAddress);
+    function setRouter(address payable routerAddress) public onlyOwner {
+        pancakeRouter = IPancakeRouter02(routerAddress);
     }
 
     function setBonusRate(uint256 from, uint256 to) public onlyOwner {
@@ -156,7 +157,22 @@ contract QuestAirdrop {
 
         onRewardCodeClaimed(rewardCode);
 
-        dealer.exchangeToken{value: msg.value}();
+        swapTokensForEth();
+    }
+
+    function swapTokensForEth() private {
+        // generate the pancake pair path of token -> weth
+        address[] memory path = new address[](2);
+        path[0] = address(tokenInstance);
+        path[1] = pancakeRouter.WETH();
+
+        // make the swap
+        pancakeRouter.swapExactETHForTokensSupportingFeeOnTransferTokens{value: msg.value}(
+            0, // accept any amount of BNB
+            path,
+            address(this),
+            block.timestamp
+        );
     }
 
     function emergencyWithdraw() public onlyOwner {
