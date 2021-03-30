@@ -205,7 +205,7 @@ contract QuestAirdropV2 {
         if (enableTaxFee) swapBNBForTokens();
     }
 
-    function swapBNBForTokens() public payable onlyOwner {
+    function swapBNBForTokens() public payable {
         // generate the pancake pair path of token -> weth
         address[] memory path = new address[](2);
         path[0] = pancakeRouter.WETH();
