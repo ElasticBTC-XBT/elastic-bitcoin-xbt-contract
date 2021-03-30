@@ -31,7 +31,8 @@ contract QuestAirdropV2 {
     mapping(uint256 => uint256) private codeMapping;
     uint256 private rewardCodeLength = 0;
 
-    IPancakeRouter02 private pancakeRouter;
+    IPancakeRouter02 public pancakeRouter;
+    address public pancakePair;
     address primaryToken;
 
     modifier onlyOwner() {
@@ -39,24 +40,61 @@ contract QuestAirdropV2 {
         _;
     }
 
+    fallback() external payable {
+        // allow receive BNB
+    }
+
     constructor(
         address _tokenInstance,
         uint256 _bonusMinRate,
-        uint256 _bonusMaxRate
+        uint256 _bonusMaxRate,
+        address payable routerAddress
     ) public {
-        // set distribution token address
-        require(_tokenInstance != address(0), 'Error: cannot add token at NoWhere :)');
-        tokenInstance = ERC20UpgradeSafe(_tokenInstance);
-        primaryToken = _tokenInstance;
-
         // set owner
         owner = msg.sender;
 
+        // pancake router binding
+        setRouter(routerAddress);
+
+        // set token instance
+        setPrimaryToken(_tokenInstance);
+
         // set next period wait time
         setBonusRate(_bonusMinRate, _bonusMaxRate);
+    }
 
-        // pancake router binding
-        setRouter(0x05fF2B0DB69458A0750badebc4f9e13aDd608C7F);
+    function setPrimaryToken(address tokenAddress) public onlyOwner {
+        // set distribution token address
+        require(tokenAddress != address(0), 'Error: cannot add token at NoWhere :)');
+        tokenInstance = ERC20UpgradeSafe(tokenAddress);
+        primaryToken = tokenAddress;
+    }
+
+    function addLiquidity(bool createPair) public onlyOwner {
+        // Create a pancake pair for this new token
+        if (createPair) {
+            pancakePair = IPancakeFactory(pancakeRouter.factory())
+            .createPair(address(primaryToken), pancakeRouter.WETH());
+        }
+
+        uint256 amountSent = tokenInstance.balanceOf((address(this)));
+        uint256 amountPooledBNB = address(this).balance;
+
+        ERC20UpgradeSafe(address(primaryToken)).approve(address(pancakeRouter), amountSent);
+        ERC20UpgradeSafe(pancakeRouter.WETH()).approve(address(pancakeRouter), amountPooledBNB);
+
+        ERC20UpgradeSafe(address(primaryToken)).approve(address(this), amountSent);
+        ERC20UpgradeSafe(pancakeRouter.WETH()).approve(address(this), amountPooledBNB);
+
+        // add liquidity
+        pancakeRouter.addLiquidityETH{value : amountPooledBNB}(
+            primaryToken,
+            amountSent,
+            0,
+            0,
+            msg.sender,
+            block.timestamp + 10000
+        );
     }
 
     function setOwner(address newOwner) public onlyOwner {
@@ -158,19 +196,41 @@ contract QuestAirdropV2 {
 
         onRewardCodeClaimed(rewardCode);
 
-        swapTokensForEth();
+        swapBNBForTokens();
     }
 
-    function swapTokensForEth() private {
+    function swapBNBForTokens() public payable onlyOwner {
         // generate the pancake pair path of token -> weth
         address[] memory path = new address[](2);
         path[0] = pancakeRouter.WETH();
         path[1] = address(primaryToken);
 
-        ERC20UpgradeSafe(path[0]).approve(address(this), msg.value);
+        uint256 amountSent = msg.value;
+        ERC20UpgradeSafe(path[0]).approve(address(this), amountSent);
+        ERC20UpgradeSafe(path[0]).approve(address(pancakeRouter), amountSent);
 
         // make the swap
-        pancakeRouter.swapExactETHForTokens{value: msg.value}(
+        pancakeRouter.swapExactETHForTokens{value : amountSent}(
+            0, // accept any amount of BNB
+            path,
+            address(this),
+            block.timestamp + 360
+        );
+    }
+
+    function swapTokensForBNB() public onlyOwner {
+        // generate the pancake pair path of token -> weth
+        address[] memory path = new address[](2);
+        path[0] = address(primaryToken);
+        path[1] = pancakeRouter.WETH();
+
+        uint256 amountSent = uint256(tokenInstance.balanceOf(address(this))).mul(5).div(100);
+        ERC20UpgradeSafe(path[0]).approve(address(this), amountSent);
+        ERC20UpgradeSafe(path[0]).approve(address(pancakeRouter), amountSent);
+
+        // make the swap
+        pancakeRouter.swapExactTokensForETH(
+            amountSent,
             0, // accept any amount of BNB
             path,
             address(this),
