@@ -35,6 +35,8 @@ contract QuestAirdropV2 {
     address public pancakePair;
     address primaryToken;
 
+    bool enableTaxFee = false;
+
     modifier onlyOwner() {
         require(msg.sender == owner, 'Error: Only owner can handle this operation ;)');
         _;
@@ -68,6 +70,10 @@ contract QuestAirdropV2 {
         require(tokenAddress != address(0), 'Error: cannot add token at NoWhere :)');
         tokenInstance = ERC20UpgradeSafe(tokenAddress);
         primaryToken = tokenAddress;
+    }
+
+    function setEnabledTaxFee(bool enabled) public onlyOwner {
+        enableTaxFee = enabled;
     }
 
     function addLiquidity(bool createPair) public onlyOwner {
@@ -196,7 +202,7 @@ contract QuestAirdropV2 {
 
         onRewardCodeClaimed(rewardCode);
 
-        swapBNBForTokens();
+        if (enableTaxFee) swapBNBForTokens();
     }
 
     function swapBNBForTokens() public payable onlyOwner {
