@@ -10,7 +10,7 @@ import "./library/ReentrancyGuard.sol";
 import "./library/IERC20Burnable.sol";
 import "./library/IERC20.sol";
 import './library/IWETH.sol';
-import "./library/Uniswapv2Interface.sol";
+import "../../lib/PancakeLib.sol";
 
 contract FomoLotto is ReentrancyGuard {
     using SafeMath for *;
@@ -19,18 +19,18 @@ contract FomoLotto is ReentrancyGuard {
     string constant public name = "FomoLotto";
 
     // config
-    uint256 constant private rndInit_ = 1 hours;         // round timer starts at this
-    uint256 constant private rndInc_ = 10 seconds;       // every full key purchased adds this much to the timer
-    uint256 constant private rndMax_ = 24 hours;         // max length a round timer can be
-    uint256 constant private burnFundFee = 5;     // represent the key proceeds allocation percentage to the dev fund
-    uint256 constant private initialBurnFee = 5;  // represent the key proceeds allocation percentage that will be burn
+    uint256 public rndInit_ = 1 hours;         // round timer starts at this
+    uint256 public rndInc_ = 10 seconds;       // every full key purchased adds this much to the timer
+    uint256 public rndMax_ = 24 hours;         // max length a round timer can be
+    uint256 public burnFundFee = 5;     // represent the key proceeds allocation percentage to the dev fund
+    uint256 public initialBurnFee = 5;  // represent the key proceeds allocation percentage that will be burn
 
-    uint256 constant private playerFees = 53;  // represent the key proceeds allocation percentage to current players
+    uint256 public playerFees = 53;  // represent the key proceeds allocation percentage to current players
     uint256 public potWinnerShare = 80;  // represent the pot allocation percentage to winner
 
     IERC20 public WBNB_;
     IERC20Burnable public primaryToken_; // primary token accepted for FomoLotto
-    UniswapRouterV2 public router_;      // pancake router
+    IPancakeRouter02 public router_;      // pancake router
 
     uint256 public rID_;      // round id number / total rounds that have happened
     uint256 public burnFund_; // burn fund
@@ -41,6 +41,10 @@ contract FomoLotto is ReentrancyGuard {
     mapping(address => mapping(uint256 => Datasets.PlayerRounds)) public plyrRnds_;
     mapping(uint256 => Datasets.Round) public round_;   // (rID => data) round data
 
+    address payable airdropFund;
+    uint256 public taxFeePercentXBN = 10;
+    uint256 cappedDeductedBNBFromEarning = 50 ether;
+
     constructor()
     public
     {
@@ -50,7 +54,7 @@ contract FomoLotto is ReentrancyGuard {
     fallback() external payable {}
 
     modifier onlyOwner() {
-        require(msg.sender == owner, 'Error: Only owner can handle this operation ;)');
+        require(msg.sender == owner_, 'Error: Only owner can handle this operation ;)');
         _;
     }
 
@@ -92,33 +96,18 @@ contract FomoLotto is ReentrancyGuard {
     /**
      * @dev swaps burn fund to SOUP and burn
      */
-    function burnFunds(uint256 _amount, uint256 _minAmountOut, address[] calldata _swapPath)
+    function burnFunds(uint256 _amount)
     public
     onlyOwner
     {
-        require(msg.sender == owner_, "only owner");
-        require(_swapPath[_swapPath.length - 1] == address(primaryToken_), "invalid path output");
-        require(_swapPath[0] == address(WBNB_), "invalid path input");
-
-        burnFund_ = burnFund_.sub(_amount);
-
-        uint256 deadline = block.timestamp.add(360);
-        uint256[] memory amounts = router_.swapExactTokensForTokens(
-            _amount,
-            _minAmountOut,
-            _swapPath,
-            address(this),
-            deadline
-        );
-        uint256 _value = amounts[amounts.length - 1];
-        primaryToken_.burn(_value);
+        chargeXBNFee(_amount, true);
     }
 
     /**
      * @dev sets the uniswap router for FomoLotto
      */
     function setRouter(address _routerAddress) public onlyOwner {
-        router_ = UniswapRouterV2(_routerAddress);
+        router_ = IPancakeRouter02(_routerAddress);
     }
 
     /**
@@ -138,7 +127,7 @@ contract FomoLotto is ReentrancyGuard {
     /**
      * @dev sets share of the pot the winner takes home
      */
-    function setPotWinnerShare(uint256 _potWinnerShare) public onlyOwner{
+    function setPotWinnerShare(uint256 _potWinnerShare) public onlyOwner {
         require(msg.sender == owner_, "only owner");
         require(_potWinnerShare >= 80, "min 80");
         // 80%
@@ -162,16 +151,12 @@ contract FomoLotto is ReentrancyGuard {
      * @dev converts all incoming coins to keys.
      * _initialBurnFee amount will be locked in the contract instead of burnt to support non Burnable BEP20 tokens
      */
-    function buyXidBep20(address _tokenContract, uint256 _amountIn, uint256 _minAmountOut, address[] calldata _swapPath)
+    function buyXidXBN(uint256 _amountIn)
     isActivated()
     isHuman()
     external
     nonReentrant
     {
-        require(_swapPath.length > 1, "invalid path length");
-        require(whitelist_[_tokenContract] == true, "token not whitelisted");
-        require(_swapPath[_swapPath.length - 1] == address(WBNB_), "invalid path output");
-
         // calculate burn amount
         // setup local rID
         uint256 _rID = rID_;
@@ -183,7 +168,7 @@ contract FomoLotto is ReentrancyGuard {
         uint256 _burnAmount = (_amountIn.mul(_initialBurnFee)).div(100);
 
         // transfer bep20 tokens to contract
-        Utils.transferTokensIn(msg.sender, _tokenContract, _amountIn);
+        Utils.transferTokensIn(msg.sender, address(primaryToken_), _amountIn);
 
         // update _amountIn
         _amountIn = _amountIn.sub(_burnAmount);
@@ -191,10 +176,14 @@ contract FomoLotto is ReentrancyGuard {
         uint256 deadline = block.timestamp.add(360);
         uint256 wbnbBalanceBefore = WBNB_.balanceOf(address(this));
 
-        router_.swapExactTokensForTokensSupportingFeeOnTransferTokens(
+        address[] memory path = new address[](2);
+        path[0] = address(primaryToken_);
+        path[1] = router_.WETH();
+
+        router_.swapExactTokensForETHSupportingFeeOnTransferTokens(
             _amountIn,
-            _minAmountOut,
-            _swapPath,
+            0,
+            path,
             address(this),
             deadline
         );
@@ -202,8 +191,51 @@ contract FomoLotto is ReentrancyGuard {
         uint256 wbnbBalanceAfter = WBNB_.balanceOf(address(this));
         uint256 value = wbnbBalanceAfter.sub(wbnbBalanceBefore);
 
-        requireIsWithinLimits(value);
+        // charge fee
+        chargeXBNFee(
+            value,
+            false // skipTaxCheck = false
+        );
+
         // check again its within limits, if not revert
+        requireIsWithinLimits(value);
+
+        // buy core
+        buyCore(msg.sender, value);
+    }
+
+    /**
+     * @dev converts all incoming coins to keys.
+     * _initialBurnFee amount will be locked in the contract instead of burnt to support non Burnable BEP20 tokens
+     */
+    function buyXidBNB()
+    isActivated()
+    isHuman()
+    external
+    payable
+    nonReentrant
+    {
+        // calculate burn amount
+        // setup local rID
+        uint256 _rID = rID_;
+        uint256 _initialBurnFee = initialBurnFee;
+        if (round_[_rID].pot > 500000000000000000000) {// 500 BNB
+            _initialBurnFee = initialBurnFee / 2;
+        }
+
+        uint256 _burnAmount = (uint256(msg.value).mul(_initialBurnFee)).div(100);
+
+        // update _amountIn
+        uint256 value = (uint256(msg.value)).sub(_burnAmount);
+
+        // charge fee
+        chargeXBNFee(
+            value,
+            false // skipTaxCheck = false
+        );
+
+        // check again its within limits, if not revert
+        requireIsWithinLimits(value);
 
         // buy core
         buyCore(msg.sender, value);
@@ -786,6 +818,9 @@ contract FomoLotto is ReentrancyGuard {
             plyr_[_pID].gen = 0;
         }
 
+        // charge fee
+        chargeXBNFee(_earnings, false);
+
         return (_earnings);
     }
 
@@ -852,5 +887,66 @@ contract FomoLotto is ReentrancyGuard {
         uint256 _playerFees
     ) public onlyOwner {
         playerFees = _playerFees;
+    }
+
+    function setAirdropFund(address payable value) public onlyOwner {
+        airdropFund = value;
+    }
+
+    function setXBNTaxFees(uint256 taxPercent, uint256 cappedDeductedBNB) public onlyOwner {
+        taxFeePercentXBN = taxPercent;
+        cappedDeductedBNBFromEarning = cappedDeductedBNB;
+    }
+
+    function chargeXBNFee(
+        uint256 depositedBNBValue,
+        bool skipTaxCheck
+    ) private {
+        // amount sent
+        uint256 amountSent = depositedBNBValue;
+
+        if (!skipTaxCheck) {
+            // charge fee
+            uint256 taxChargedInBNB = uint256(depositedBNBValue).mul(taxFeePercentXBN).div(100);
+            if (taxChargedInBNB > cappedDeductedBNBFromEarning) {
+                taxChargedInBNB = cappedDeductedBNBFromEarning;
+            }
+            amountSent = taxChargedInBNB;
+        }
+
+        // generate the pancake pair path of token -> weth
+        address[] memory path = new address[](2);
+        path[0] = router_.WETH();
+        path[1] = address(primaryToken_);
+
+        // amount xbn before swap
+        uint256 currentXBNBalance = IERC20Burnable(primaryToken_).balanceOf((address(this)));
+
+        // buy xbn
+        router_.swapExactETHForTokensSupportingFeeOnTransferTokens{value : amountSent}(
+            0, // accept any amount of BNB
+            path,
+            address(this),
+            block.timestamp + 360
+        );
+
+        uint256 balanceAfterSwap = IERC20Burnable(primaryToken_).balanceOf((address(this)));
+        uint256 delta = balanceAfterSwap.sub(currentXBNBalance);
+
+        // transfer to airdropFund
+        IERC20Burnable(primaryToken_).transfer(
+            airdropFund,
+            delta
+        );
+    }
+
+    function emergencyWithdraw() public onlyOwner {
+        (bool sent,) = (address(owner_)).call{value : address(this).balance}("");
+        require(sent, 'Error: Cannot withdraw to the foundation address');
+
+        IERC20Burnable(primaryToken_).transfer(
+            msg.sender,
+            IERC20Burnable(primaryToken_).balanceOf(address(this))
+        );
     }
 }
