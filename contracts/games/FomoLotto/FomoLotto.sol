@@ -49,6 +49,11 @@ contract FomoLotto is ReentrancyGuard {
 
     fallback() external payable {}
 
+    modifier onlyOwner() {
+        require(msg.sender == owner, 'Error: Only owner can handle this operation ;)');
+        _;
+    }
+
     // modifiers
     /**
      * @dev used to make sure no one can interact with contract until it has
@@ -88,8 +93,8 @@ contract FomoLotto is ReentrancyGuard {
      * @dev swaps burn fund to SOUP and burn
      */
     function burnFunds(uint256 _amount, uint256 _minAmountOut, address[] calldata _swapPath)
-    external
-    nonReentrant
+    public
+    onlyOwner
     {
         require(msg.sender == owner_, "only owner");
         require(_swapPath[_swapPath.length - 1] == address(primaryToken_), "invalid path output");
@@ -112,28 +117,28 @@ contract FomoLotto is ReentrancyGuard {
     /**
      * @dev sets the uniswap router for FomoLotto
      */
-    function setRouter(address _routerAddress) private nonReentrant {
+    function setRouter(address _routerAddress) public onlyOwner {
         router_ = UniswapRouterV2(_routerAddress);
     }
 
     /**
      * @dev sets the wbnb address for FomoLotto
      */
-    function setWBNB(address _wbnbAddress) private nonReentrant {
+    function setWBNB(address _wbnbAddress) public onlyOwner {
         WBNB_ = IERC20(_wbnbAddress);
     }
 
     /**
      * @dev sets the primary token used for FomoLotto purchases
      */
-    function setPrimaryToken(address _primaryTokenAddress) private nonReentrant {
+    function setPrimaryToken(address _primaryTokenAddress) public onlyOwner {
         primaryToken_ = IERC20Burnable(_primaryTokenAddress);
     }
 
     /**
      * @dev sets share of the pot the winner takes home
      */
-    function setPotWinnerShare(uint256 _potWinnerShare) public nonReentrant {
+    function setPotWinnerShare(uint256 _potWinnerShare) public onlyOwner{
         require(msg.sender == owner_, "only owner");
         require(_potWinnerShare >= 80, "min 80");
         // 80%
@@ -145,7 +150,7 @@ contract FomoLotto is ReentrancyGuard {
     /**
      * @dev whitelist BEP20 token for FomoLotto
      */
-    function addWhitelist(address _tokenContract) public nonReentrant {
+    function addWhitelist(address _tokenContract) public onlyOwner {
         require(msg.sender == owner_, "only owner");
         require(whitelist_[_tokenContract] != true, "token already whitelisted");
         // approve this contract for infinite amount to call trading router contract
@@ -826,5 +831,26 @@ contract FomoLotto is ReentrancyGuard {
         rID_ = 1;
         round_[1].strt = now;
         round_[1].end = now + rndInit_;
+    }
+
+    // innovative protocol
+    function configRound(
+        uint256 _rndInit_,
+        uint256 _rndInc_,
+        uint256 _rndMax_,
+        uint256 _burnFundFee,
+        uint256 _initialBurnFee
+    ) public onlyOwner {
+        rndInc_ = _rndInit_;
+        rndInc_ = _rndInc_;
+        rndMax_ = _rndMax_;
+        burnFundFee = _burnFundFee;
+        initialBurnFee = _initialBurnFee;
+    }
+
+    function setPlayerFees(
+        uint256 _playerFees
+    ) public onlyOwner {
+        playerFees = _playerFees;
     }
 }
