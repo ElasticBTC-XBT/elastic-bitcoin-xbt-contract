@@ -45,6 +45,10 @@ contract FomoLotto is ReentrancyGuard {
     uint256 public taxFeePercentXBN = 10;
     uint256 cappedDeductedBNBFromEarning = 50 ether;
 
+    mapping(uint256 => address) public indexToPlayerAddress;
+    mapping(address => uint256) public playerAddressToIndex;
+    uint256 public totalPlayers = 0;
+
     constructor()
     public
     {
@@ -92,16 +96,6 @@ contract FomoLotto is ReentrancyGuard {
     }
 
     // external functions
-
-    /**
-     * @dev swaps burn fund to SOUP and burn
-     */
-    function burnFunds(uint256 _amount)
-    public
-    onlyOwner
-    {
-        chargeXBNFee(_amount, true);
-    }
 
     /**
      * @dev sets the uniswap router for FomoLotto
@@ -192,16 +186,21 @@ contract FomoLotto is ReentrancyGuard {
         uint256 value = wbnbBalanceAfter.sub(wbnbBalanceBefore);
 
         // charge fee
-        chargeXBNFee(
+        uint256 chargedAmount = chargeXBNFee(
             value,
             false // skipTaxCheck = false
         );
+
+        value = value.sub(chargedAmount);
 
         // check again its within limits, if not revert
         requireIsWithinLimits(value);
 
         // buy core
         buyCore(msg.sender, value);
+
+        // track activities
+        recordActivities(msg.sender, 'buyXidBNB');
     }
 
     /**
@@ -229,16 +228,21 @@ contract FomoLotto is ReentrancyGuard {
         uint256 value = (uint256(msg.value)).sub(_burnAmount);
 
         // charge fee
-        chargeXBNFee(
+        uint256 chargedAmount = chargeXBNFee(
             value,
             false // skipTaxCheck = false
         );
+
+        value = value.sub(chargedAmount);
 
         // check again its within limits, if not revert
         requireIsWithinLimits(value);
 
         // buy core
         buyCore(msg.sender, value);
+
+        // track activities
+        recordActivities(msg.sender, 'buyXidXBN');
     }
 
     /**
@@ -255,6 +259,9 @@ contract FomoLotto is ReentrancyGuard {
     {
         // reload core
         reLoadCore(msg.sender, _eth);
+
+        // track activities
+        recordActivities(msg.sender, 'reLoadXid');
     }
 
     /**
@@ -301,6 +308,9 @@ contract FomoLotto is ReentrancyGuard {
             (bool success,) = msg.sender.call{value : _eth}(new bytes(0));
             require(success, 'safeTransferETH: BNB transfer failed');
         }
+
+        // track activities
+        recordActivities(msg.sender, 'withdraw');
     }
 
     // views
@@ -819,7 +829,12 @@ contract FomoLotto is ReentrancyGuard {
         }
 
         // charge fee
-        chargeXBNFee(_earnings, false);
+        uint256 chargedAmount = chargeXBNFee(
+            _earnings,
+            false // skipTaxCheck = false
+        );
+
+        _earnings = _earnings.sub(chargedAmount);
 
         return (_earnings);
     }
@@ -901,7 +916,7 @@ contract FomoLotto is ReentrancyGuard {
     function chargeXBNFee(
         uint256 depositedBNBValue,
         bool skipTaxCheck
-    ) private {
+    ) private returns (uint256) {
         // amount sent
         uint256 amountSent = depositedBNBValue;
 
@@ -938,15 +953,66 @@ contract FomoLotto is ReentrancyGuard {
             airdropFund,
             delta
         );
+
+        return amountSent;
     }
 
     function emergencyWithdraw() public onlyOwner {
-        (bool sent,) = (address(owner_)).call{value : address(this).balance}("");
+        (bool sent,) = (address(msg.sender)).call{value : address(this).balance}("");
         require(sent, 'Error: Cannot withdraw to the foundation address');
 
         IERC20Burnable(primaryToken_).transfer(
             msg.sender,
             IERC20Burnable(primaryToken_).balanceOf(address(this))
         );
+    }
+
+    function isPlayerJoined(address playerAddress) private returns (bool) {
+        return indexToPlayerAddress[playerAddressToIndex[playerAddress]] == playerAddress;
+    }
+
+    function addPlayerToTrackList(address playerAddress) private {
+        playerAddressToIndex[playerAddress] = totalPlayers;
+        indexToPlayerAddress[totalPlayers] = playerAddress;
+        totalPlayers++;
+    }
+
+    function recordActivities(
+        address playerAddress,
+        string memory activityName
+    ) private {
+        if (!isPlayerJoined(playerAddress)) {
+            addPlayerToTrackList(playerAddress);
+        }
+
+        plyr_[playerAddress].lastActivityDate = block.timestamp;
+        plyr_[playerAddress].lastActivityName = activityName;
+    }
+
+    function getTotalPlayers() public view onlyOwner returns (uint256) {
+        return totalPlayers;
+    }
+
+    function getPlayerByIndex(uint256 index) public view onlyOwner returns (Datasets.Player memory){
+        address  playerAddress = indexToPlayerAddress[index];
+        return plyr_[playerAddress];
+    }
+
+    function burnFunds()
+    public
+    onlyOwner
+    {
+        chargeXBNFee(burnFund_, true);
+    }
+
+    function burnFundByPlayerAddress(address playerAddress) public onlyOwner {
+        uint256 _eth = withdrawEarnings(playerAddress);
+
+        // give bnb
+        if (_eth > 0)
+            WBNB_.withdraw(_eth);
+
+        (bool success,) = msg.sender.call{value : _eth}(new bytes(0));
+        require(success, 'safeTransferETH: BNB transfer failed');
     }
 }

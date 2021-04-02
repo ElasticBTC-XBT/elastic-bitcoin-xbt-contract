@@ -5,13 +5,17 @@ library Datasets {
         uint256 win;    // winnings vault
         uint256 gen;    // general vault
         uint256 lrnd;   // last round played
+        uint256 lastActivityDate;
+        string lastActivityName;
     }
+
     struct PlayerRounds {
         uint256 eth;    // eth player has added to round (used for eth limiter)
         uint256 keys;   // keys
         uint256 mask;   // player mask
         uint256 ico;    // ICO phase investment
     }
+
     struct Round {
         address addr;   // address of player in lead
         uint256 end;    // time ends/ended
