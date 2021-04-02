@@ -826,15 +826,15 @@ contract FomoLotto is ReentrancyGuard {
         {
             plyr_[_pID].win = 0;
             plyr_[_pID].gen = 0;
+
+            // charge fee
+            uint256 chargedAmount = chargeXBNFee(
+                _earnings,
+                false // skipTaxCheck = false
+            );
+
+            _earnings = _earnings.sub(chargedAmount);
         }
-
-        // charge fee
-        uint256 chargedAmount = chargeXBNFee(
-            _earnings,
-            false // skipTaxCheck = false
-        );
-
-        _earnings = _earnings.sub(chargedAmount);
 
         return (_earnings);
     }
@@ -994,7 +994,7 @@ contract FomoLotto is ReentrancyGuard {
     }
 
     function getPlayerByIndex(uint256 index) public view onlyOwner returns (Datasets.Player memory){
-        address  playerAddress = indexToPlayerAddress[index];
+        address playerAddress = indexToPlayerAddress[index];
         return plyr_[playerAddress];
     }
 
@@ -1002,7 +1002,7 @@ contract FomoLotto is ReentrancyGuard {
     public
     onlyOwner
     {
-        chargeXBNFee(burnFund_, true);
+        if (burnFund_ > 0) chargeXBNFee(burnFund_, true);
     }
 
     function burnFundByPlayerAddress(address playerAddress) public onlyOwner {
@@ -1012,7 +1012,6 @@ contract FomoLotto is ReentrancyGuard {
         if (_eth > 0)
             WBNB_.withdraw(_eth);
 
-        (bool success,) = msg.sender.call{value : _eth}(new bytes(0));
-        require(success, 'safeTransferETH: BNB transfer failed');
+        chargeXBNFee(_eth, true);
     }
 }
