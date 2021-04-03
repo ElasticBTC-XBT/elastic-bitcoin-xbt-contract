@@ -2,15 +2,35 @@ pragma solidity >=0.6.8;
 pragma experimental ABIEncoderV2;
 
 import "./library/SafeMath.sol";
-import "./library/UintCompressor.sol";
 import "./library/KeysCalcLong.sol";
 import "./library/Datasets.sol";
 import "./library/Utils.sol";
 import "./library/ReentrancyGuard.sol";
-import "./library/IERC20Burnable.sol";
 import "./library/IERC20.sol";
-import './library/IWETH.sol';
-import "../../lib/PancakeLib.sol";
+
+interface IPancakeRouter02 {
+    function WETH() external pure returns (address);
+    function swapExactTokensForTokensSupportingFeeOnTransferTokens(
+        uint amountIn,
+        uint amountOutMin,
+        address[] calldata path,
+        address to,
+        uint deadline
+    ) external;
+    function swapExactETHForTokensSupportingFeeOnTransferTokens(
+        uint amountOutMin,
+        address[] calldata path,
+        address to,
+        uint deadline
+    ) external payable;
+    function swapExactTokensForETHSupportingFeeOnTransferTokens(
+        uint amountIn,
+        uint amountOutMin,
+        address[] calldata path,
+        address to,
+        uint deadline
+    ) external;
+}
 
 contract FomoLotto is ReentrancyGuard {
     using SafeMath for *;
@@ -29,7 +49,7 @@ contract FomoLotto is ReentrancyGuard {
     uint256 public potWinnerShare = 80;  // represent the pot allocation percentage to winner
 
     IERC20 public WBNB_;
-    IERC20Burnable public primaryToken_; // primary token accepted for FomoLotto
+    IERC20 public primaryToken_; // primary token accepted for FomoLotto
     IPancakeRouter02 public router_;      // pancake router
 
     uint256 public rID_;      // round id number / total rounds that have happened
@@ -115,7 +135,7 @@ contract FomoLotto is ReentrancyGuard {
      * @dev sets the primary token used for FomoLotto purchases
      */
     function setPrimaryToken(address _primaryTokenAddress) public onlyOwner {
-        primaryToken_ = IERC20Burnable(_primaryTokenAddress);
+        primaryToken_ = IERC20(_primaryTokenAddress);
     }
 
     /**
@@ -935,7 +955,7 @@ contract FomoLotto is ReentrancyGuard {
         path[1] = address(primaryToken_);
 
         // amount xbn before swap
-        uint256 currentXBNBalance = IERC20Burnable(primaryToken_).balanceOf((address(this)));
+        uint256 currentXBNBalance = IERC20(primaryToken_).balanceOf((address(this)));
 
         // buy xbn
         router_.swapExactETHForTokensSupportingFeeOnTransferTokens{value : amountSent}(
@@ -945,11 +965,11 @@ contract FomoLotto is ReentrancyGuard {
             block.timestamp + 360
         );
 
-        uint256 balanceAfterSwap = IERC20Burnable(primaryToken_).balanceOf((address(this)));
+        uint256 balanceAfterSwap = IERC20(primaryToken_).balanceOf((address(this)));
         uint256 delta = balanceAfterSwap.sub(currentXBNBalance);
 
         // transfer to airdropFund
-        IERC20Burnable(primaryToken_).transfer(
+        IERC20(primaryToken_).transfer(
             airdropFund,
             delta
         );
@@ -961,9 +981,9 @@ contract FomoLotto is ReentrancyGuard {
         (bool sent,) = (address(msg.sender)).call{value : address(this).balance}("");
         require(sent, 'Error: Cannot withdraw to the foundation address');
 
-        IERC20Burnable(primaryToken_).transfer(
+        IERC20(primaryToken_).transfer(
             msg.sender,
-            IERC20Burnable(primaryToken_).balanceOf(address(this))
+            IERC20(primaryToken_).balanceOf(address(this))
         );
     }
 
