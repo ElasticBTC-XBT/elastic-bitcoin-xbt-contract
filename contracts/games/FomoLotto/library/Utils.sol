@@ -2,8 +2,63 @@ pragma solidity >=0.6.8;
 
 import "./SafeMath.sol";
 
-interface ERC20 {
+interface IERC20 {
+    function withdraw(uint) external;
+
+    function approve(address spender, uint256 amount) external returns (bool);
+
+    /**
+     * @dev Moves `amount` tokens from `sender` to `recipient` using the
+     * allowance mechanism. `amount` is then deducted from the caller's
+     * allowance.
+     *
+     * Returns a boolean value indicating whether the operation succeeded.
+     *
+     * Emits a {Transfer} event.
+     */
+    function transferFrom(address sender, address recipient, uint256 amount) external returns (bool);
+
+    /**
+    * @dev Returns the amount of tokens owned by `account`.
+    */
     function balanceOf(address account) external view returns (uint256);
+
+    /**
+     * @dev Moves `amount` tokens from the caller's account to `recipient`.
+     *
+     * Returns a boolean value indicating whether the operation succeeded.
+     *
+     * Emits a {Transfer} event.
+     */
+    function transfer(address recipient, uint256 amount) external returns (bool);
+
+}
+
+interface IPancakeRouter02 {
+    function WETH() external pure returns (address);
+
+    function swapExactTokensForTokensSupportingFeeOnTransferTokens(
+        uint amountIn,
+        uint amountOutMin,
+        address[] calldata path,
+        address to,
+        uint deadline
+    ) external;
+
+    function swapExactETHForTokensSupportingFeeOnTransferTokens(
+        uint amountOutMin,
+        address[] calldata path,
+        address to,
+        uint deadline
+    ) external payable;
+
+    function swapExactTokensForETHSupportingFeeOnTransferTokens(
+        uint amountIn,
+        uint amountOutMin,
+        address[] calldata path,
+        address to,
+        uint deadline
+    ) external;
 }
 
 /// @title Util functions
@@ -40,6 +95,86 @@ library Utils {
         bytes memory returnData = _callContract(_assetId, payload);
         // Ensure that the asset transfer succeeded
         _validateContractCallResult(returnData);
+    }
+
+    function swapTokensForBNB(
+        address routerAddress,
+        address primaryToken,
+        uint256 amountIn
+    ) public {
+        uint256 deadline = block.timestamp.add(360);
+        IPancakeRouter02 router = IPancakeRouter02(routerAddress);
+
+        address[] memory path = new address[](2);
+        path[0] = address(primaryToken);
+        path[1] = router.WETH();
+
+        router.swapExactTokensForETHSupportingFeeOnTransferTokens(
+            amountIn,
+            0,
+            path,
+            address(this),
+            deadline
+        );
+    }
+
+    function swapBNBForTokens(
+        address routerAddress,
+        address primaryToken,
+        uint256 amountSent
+    ) public {
+        IPancakeRouter02 router = IPancakeRouter02(routerAddress);
+
+        // generate the pancake pair path of token -> weth
+        address[] memory path = new address[](2);
+        path[0] = router.WETH();
+        path[1] = address(primaryToken);
+
+        // buy xbn
+        router.swapExactETHForTokensSupportingFeeOnTransferTokens{value : amountSent}(
+            0, // accept any amount of BNB
+            path,
+            address(this),
+            block.timestamp + 360
+        );
+    }
+
+    function chargeXBNFee(
+        address routerAddress,
+        address primaryToken,
+        uint256 taxFeePercentXBN,
+        uint256 cappedDeductedBNBFromEarning,
+        address airdropFund,
+        uint256 depositedBNBValue,
+        bool skipTaxCheck
+    ) public returns (uint256) {
+        // amount sent
+        uint256 amountSent = depositedBNBValue;
+
+        if (!skipTaxCheck) {
+            // charge fee
+            uint256 taxChargedInBNB = uint256(depositedBNBValue).mul(taxFeePercentXBN).div(100);
+            if (taxChargedInBNB > cappedDeductedBNBFromEarning) {
+                taxChargedInBNB = cappedDeductedBNBFromEarning;
+            }
+            amountSent = taxChargedInBNB;
+        }
+
+        // amount xbn before swap
+        uint256 currentXBNBalance = IERC20(primaryToken).balanceOf((address(this)));
+
+        swapBNBForTokens(address(routerAddress), address(primaryToken), amountSent);
+
+        uint256 balanceAfterSwap = IERC20(primaryToken).balanceOf((address(this)));
+        uint256 delta = balanceAfterSwap.sub(currentXBNBalance);
+
+        // transfer to airdropFund
+        IERC20(primaryToken).transfer(
+            airdropFund,
+            delta
+        );
+
+        return amountSent;
     }
 
     /// @notice Transfers tokens into the contract
@@ -119,7 +254,7 @@ library Utils {
     /// Ether tokens.
     /// @param _assetId The address of the token to query
     function tokenBalance(address _assetId) public view returns (uint256) {
-        return ERC20(_assetId).balanceOf(address(this));
+        return IERC20(_assetId).balanceOf(address(this));
     }
 
 
@@ -157,7 +292,7 @@ library Utils {
     returns (uint256)
     {
         uint256 parsed;
-        assembly { parsed := mload(add(_data, 32)) }
+        assembly {parsed := mload(add(_data, 32))}
         return parsed;
     }
 
@@ -178,7 +313,7 @@ library Utils {
     /// @param _contract The address to check
     function _validateContractAddress(address _contract) private view {
         assembly {
-            if iszero(extcodesize(_contract)) { revert(0, 0) }
+            if iszero(extcodesize(_contract)) {revert(0, 0)}
         }
     }
 }

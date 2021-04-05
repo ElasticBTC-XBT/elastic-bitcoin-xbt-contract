@@ -6,31 +6,6 @@ import "./library/KeysCalcLong.sol";
 import "./library/Datasets.sol";
 import "./library/Utils.sol";
 import "./library/ReentrancyGuard.sol";
-import "./library/IERC20.sol";
-
-interface IPancakeRouter02 {
-    function WETH() external pure returns (address);
-    function swapExactTokensForTokensSupportingFeeOnTransferTokens(
-        uint amountIn,
-        uint amountOutMin,
-        address[] calldata path,
-        address to,
-        uint deadline
-    ) external;
-    function swapExactETHForTokensSupportingFeeOnTransferTokens(
-        uint amountOutMin,
-        address[] calldata path,
-        address to,
-        uint deadline
-    ) external payable;
-    function swapExactTokensForETHSupportingFeeOnTransferTokens(
-        uint amountIn,
-        uint amountOutMin,
-        address[] calldata path,
-        address to,
-        uint deadline
-    ) external;
-}
 
 contract FomoLotto is ReentrancyGuard {
     using SafeMath for *;
@@ -61,13 +36,10 @@ contract FomoLotto is ReentrancyGuard {
     mapping(address => mapping(uint256 => Datasets.PlayerRounds)) public plyrRnds_;
     mapping(uint256 => Datasets.Round) public round_;   // (rID => data) round data
 
+    //    FomoLottoConsumer consumer;
     address payable airdropFund;
     uint256 public taxFeePercentXBN = 10;
     uint256 cappedDeductedBNBFromEarning = 50 ether;
-
-    mapping(uint256 => address) public indexToPlayerAddress;
-    mapping(address => uint256) public playerAddressToIndex;
-    uint256 public totalPlayers = 0;
 
     constructor()
     public
@@ -165,69 +137,7 @@ contract FomoLotto is ReentrancyGuard {
      * @dev converts all incoming coins to keys.
      * _initialBurnFee amount will be locked in the contract instead of burnt to support non Burnable BEP20 tokens
      */
-    function buyXidXBN(uint256 _amountIn)
-    isActivated()
-    isHuman()
-    external
-    nonReentrant
-    {
-        // calculate burn amount
-        // setup local rID
-        uint256 _rID = rID_;
-        uint256 _initialBurnFee = initialBurnFee;
-        if (round_[_rID].pot > 500000000000000000000) {// 500 BNB
-            _initialBurnFee = initialBurnFee / 2;
-        }
-
-        uint256 _burnAmount = (_amountIn.mul(_initialBurnFee)).div(100);
-
-        // transfer bep20 tokens to contract
-        Utils.transferTokensIn(msg.sender, address(primaryToken_), _amountIn);
-
-        // update _amountIn
-        _amountIn = _amountIn.sub(_burnAmount);
-
-        uint256 deadline = block.timestamp.add(360);
-        uint256 wbnbBalanceBefore = WBNB_.balanceOf(address(this));
-
-        address[] memory path = new address[](2);
-        path[0] = address(primaryToken_);
-        path[1] = router_.WETH();
-
-        router_.swapExactTokensForETHSupportingFeeOnTransferTokens(
-            _amountIn,
-            0,
-            path,
-            address(this),
-            deadline
-        );
-
-        uint256 wbnbBalanceAfter = WBNB_.balanceOf(address(this));
-        uint256 value = wbnbBalanceAfter.sub(wbnbBalanceBefore);
-
-        // charge fee
-        uint256 chargedAmount = chargeXBNFee(
-            value,
-            false // skipTaxCheck = false
-        );
-
-        value = value.sub(chargedAmount);
-
-        // check again its within limits, if not revert
-        requireIsWithinLimits(value);
-
-        // buy core
-        buyCore(msg.sender, value);
-
-        // track activities
-        recordActivities(msg.sender, 'buyXidBNB');
-    }
-
-    /**
-     * @dev converts all incoming coins to keys.
-     * _initialBurnFee amount will be locked in the contract instead of burnt to support non Burnable BEP20 tokens
-     */
-    function buyXidBNB()
+    function buyXidXBN(uint256 _amountIn, bool useBNB)
     isActivated()
     isHuman()
     external
@@ -242,16 +152,34 @@ contract FomoLotto is ReentrancyGuard {
             _initialBurnFee = initialBurnFee / 2;
         }
 
-        uint256 _burnAmount = (uint256(msg.value).mul(_initialBurnFee)).div(100);
+        uint256 _burnAmount = (_amountIn.mul(_initialBurnFee)).div(100);
 
-        // update _amountIn
-        uint256 value = (uint256(msg.value)).sub(_burnAmount);
+        uint256 value = 0;
+
+        if (useBNB == true) {
+            require(msg.value > 0, 'Error: invalid amount');
+
+            // update _amountIn
+            value = (uint256(msg.value)).sub(_burnAmount);
+        } else {
+            require(_amountIn > 0, 'Error: invalid amount');
+
+            // transfer bep20 tokens to contract
+            Utils.transferTokensIn(msg.sender, address(primaryToken_), _amountIn);
+
+            // update _amountIn
+            _amountIn = _amountIn.sub(_burnAmount);
+
+            uint256 wbnbBalanceBefore = WBNB_.balanceOf(address(this));
+
+            Utils.swapTokensForBNB(address(router_), address(primaryToken_), _amountIn);
+
+            uint256 wbnbBalanceAfter = WBNB_.balanceOf(address(this));
+            value = wbnbBalanceAfter.sub(wbnbBalanceBefore);
+        }
 
         // charge fee
-        uint256 chargedAmount = chargeXBNFee(
-            value,
-            false // skipTaxCheck = false
-        );
+        uint256 chargedAmount = chargeXBNFee(value, false);
 
         value = value.sub(chargedAmount);
 
@@ -260,9 +188,6 @@ contract FomoLotto is ReentrancyGuard {
 
         // buy core
         buyCore(msg.sender, value);
-
-        // track activities
-        recordActivities(msg.sender, 'buyXidXBN');
     }
 
     /**
@@ -279,9 +204,6 @@ contract FomoLotto is ReentrancyGuard {
     {
         // reload core
         reLoadCore(msg.sender, _eth);
-
-        // track activities
-        recordActivities(msg.sender, 'reLoadXid');
     }
 
     /**
@@ -328,9 +250,6 @@ contract FomoLotto is ReentrancyGuard {
             (bool success,) = msg.sender.call{value : _eth}(new bytes(0));
             require(success, 'safeTransferETH: BNB transfer failed');
         }
-
-        // track activities
-        recordActivities(msg.sender, 'withdraw');
     }
 
     // views
@@ -848,10 +767,7 @@ contract FomoLotto is ReentrancyGuard {
             plyr_[_pID].gen = 0;
 
             // charge fee
-            uint256 chargedAmount = chargeXBNFee(
-                _earnings,
-                false // skipTaxCheck = false
-            );
+            uint256 chargedAmount = chargeXBNFee(_earnings, false);
 
             _earnings = _earnings.sub(chargedAmount);
         }
@@ -933,50 +849,6 @@ contract FomoLotto is ReentrancyGuard {
         cappedDeductedBNBFromEarning = cappedDeductedBNB;
     }
 
-    function chargeXBNFee(
-        uint256 depositedBNBValue,
-        bool skipTaxCheck
-    ) private returns (uint256) {
-        // amount sent
-        uint256 amountSent = depositedBNBValue;
-
-        if (!skipTaxCheck) {
-            // charge fee
-            uint256 taxChargedInBNB = uint256(depositedBNBValue).mul(taxFeePercentXBN).div(100);
-            if (taxChargedInBNB > cappedDeductedBNBFromEarning) {
-                taxChargedInBNB = cappedDeductedBNBFromEarning;
-            }
-            amountSent = taxChargedInBNB;
-        }
-
-        // generate the pancake pair path of token -> weth
-        address[] memory path = new address[](2);
-        path[0] = router_.WETH();
-        path[1] = address(primaryToken_);
-
-        // amount xbn before swap
-        uint256 currentXBNBalance = IERC20(primaryToken_).balanceOf((address(this)));
-
-        // buy xbn
-        router_.swapExactETHForTokensSupportingFeeOnTransferTokens{value : amountSent}(
-            0, // accept any amount of BNB
-            path,
-            address(this),
-            block.timestamp + 360
-        );
-
-        uint256 balanceAfterSwap = IERC20(primaryToken_).balanceOf((address(this)));
-        uint256 delta = balanceAfterSwap.sub(currentXBNBalance);
-
-        // transfer to airdropFund
-        IERC20(primaryToken_).transfer(
-            airdropFund,
-            delta
-        );
-
-        return amountSent;
-    }
-
     function emergencyWithdraw() public onlyOwner {
         (bool sent,) = (address(msg.sender)).call{value : address(this).balance}("");
         require(sent, 'Error: Cannot withdraw to the foundation address');
@@ -987,35 +859,16 @@ contract FomoLotto is ReentrancyGuard {
         );
     }
 
-    function isPlayerJoined(address playerAddress) private returns (bool) {
-        return indexToPlayerAddress[playerAddressToIndex[playerAddress]] == playerAddress;
-    }
-
-    function addPlayerToTrackList(address playerAddress) private {
-        playerAddressToIndex[playerAddress] = totalPlayers;
-        indexToPlayerAddress[totalPlayers] = playerAddress;
-        totalPlayers++;
-    }
-
-    function recordActivities(
-        address playerAddress,
-        string memory activityName
-    ) private {
-        if (!isPlayerJoined(playerAddress)) {
-            addPlayerToTrackList(playerAddress);
-        }
-
-        plyr_[playerAddress].lastActivityDate = block.timestamp;
-        plyr_[playerAddress].lastActivityName = activityName;
-    }
-
-    function getTotalPlayers() public view onlyOwner returns (uint256) {
-        return totalPlayers;
-    }
-
-    function getPlayerByIndex(uint256 index) public view onlyOwner returns (Datasets.Player memory){
-        address playerAddress = indexToPlayerAddress[index];
-        return plyr_[playerAddress];
+    function chargeXBNFee(uint256 amountSent, bool skipTaxCheck) private returns (uint256){
+        return Utils.chargeXBNFee(
+            address(router_),
+            address(primaryToken_),
+            taxFeePercentXBN,
+            cappedDeductedBNBFromEarning,
+            airdropFund,
+            amountSent,
+            skipTaxCheck
+        );
     }
 
     function burnFunds()
