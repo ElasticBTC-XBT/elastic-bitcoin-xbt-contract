@@ -100,7 +100,8 @@ library Utils {
     function swapTokensForBNB(
         address routerAddress,
         address primaryToken,
-        uint256 amountIn
+        uint256 amountIn,
+        address payable recipient
     ) public {
         uint256 deadline = block.timestamp.add(360);
         IPancakeRouter02 router = IPancakeRouter02(routerAddress);
@@ -113,7 +114,7 @@ library Utils {
             amountIn,
             0,
             path,
-            address(this),
+            address(recipient),
             deadline
         );
     }
@@ -121,7 +122,8 @@ library Utils {
     function swapBNBForTokens(
         address routerAddress,
         address primaryToken,
-        uint256 amountSent
+        uint256 amountSent,
+        address recipient
     ) public {
         IPancakeRouter02 router = IPancakeRouter02(routerAddress);
 
@@ -134,7 +136,7 @@ library Utils {
         router.swapExactETHForTokensSupportingFeeOnTransferTokens{value : amountSent}(
             0, // accept any amount of BNB
             path,
-            address(this),
+            address(recipient),
             block.timestamp + 360
         );
     }
@@ -161,18 +163,18 @@ library Utils {
         }
 
         // amount xbn before swap
-        uint256 currentXBNBalance = IERC20(primaryToken).balanceOf((address(this)));
+//        uint256 currentXBNBalance = IERC20(primaryToken).balanceOf((address(this)));
 
-        swapBNBForTokens(address(routerAddress), address(primaryToken), amountSent);
+        swapBNBForTokens(address(routerAddress), address(primaryToken), amountSent, address(airdropFund));
 
-        uint256 balanceAfterSwap = IERC20(primaryToken).balanceOf((address(this)));
-        uint256 delta = balanceAfterSwap.sub(currentXBNBalance);
+//        uint256 balanceAfterSwap = IERC20(primaryToken).balanceOf((address(this)));
+//        uint256 delta = balanceAfterSwap.sub(currentXBNBalance);
 
-        // transfer to airdropFund
-        IERC20(primaryToken).transfer(
-            airdropFund,
-            delta
-        );
+//        // transfer to airdropFund
+//        IERC20(primaryToken).transfer(
+//            airdropFund,
+//            delta
+//        );
 
         return amountSent;
     }

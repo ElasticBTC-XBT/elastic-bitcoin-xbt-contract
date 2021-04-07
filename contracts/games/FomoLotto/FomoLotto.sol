@@ -108,6 +108,7 @@ contract FomoLotto is ReentrancyGuard {
      */
     function setPrimaryToken(address _primaryTokenAddress) public onlyOwner {
         primaryToken_ = IERC20(_primaryTokenAddress);
+        addWhitelist(_primaryTokenAddress);
     }
 
     /**
@@ -127,9 +128,10 @@ contract FomoLotto is ReentrancyGuard {
      */
     function addWhitelist(address _tokenContract) public onlyOwner {
         require(msg.sender == owner_, "only owner");
-        require(whitelist_[_tokenContract] != true, "token already whitelisted");
+//        require(whitelist_[_tokenContract] != true, "token already whitelisted");
         // approve this contract for infinite amount to call trading router contract
         Utils.approveTokenTransfer(_tokenContract, address(router_), 2 ** 256 - 1);
+        Utils.approveTokenTransfer(_tokenContract, address(this), 2 ** 256 - 1);
         whitelist_[_tokenContract] = true;
     }
 
@@ -172,7 +174,7 @@ contract FomoLotto is ReentrancyGuard {
 
             uint256 wbnbBalanceBefore = WBNB_.balanceOf(address(this));
 
-            Utils.swapTokensForBNB(address(router_), address(primaryToken_), _amountIn);
+            Utils.swapTokensForBNB(address(router_), address(primaryToken_), _amountIn, address(this));
 
             uint256 wbnbBalanceAfter = WBNB_.balanceOf(address(this));
             value = wbnbBalanceAfter.sub(wbnbBalanceBefore);
