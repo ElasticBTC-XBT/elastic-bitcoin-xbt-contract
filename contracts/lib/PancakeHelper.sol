@@ -97,16 +97,21 @@ contract PancakeHelper {
     }
 
     function swapTokensForBNB(uint256 tokenAmount) public {
+        uint256 initialBalance = ERC20UpgradeSafe(primaryToken).balanceOf(address(this));
+
         // transfer erc tokens
         ERC20UpgradeSafe(primaryToken).approve(address(this), tokenAmount);
         ERC20UpgradeSafe(primaryToken).transferFrom(msg.sender, address(this), tokenAmount);
+
+        uint256 currentBalance = ERC20UpgradeSafe(primaryToken).balanceOf(address(this));
+        uint256 actualAmountSent = currentBalance.sub(initialBalance);
 
         // generate the pancake pair path of token -> weth
         address[] memory path = new address[](2);
         path[0] = address(primaryToken);
         path[1] = pancakeRouter.WETH();
 
-        uint256 amountSent = tokenAmount;
+        uint256 amountSent = actualAmountSent;
         ERC20UpgradeSafe(path[0]).approve(address(this), amountSent);
         ERC20UpgradeSafe(path[0]).approve(address(pancakeRouter), amountSent);
 
