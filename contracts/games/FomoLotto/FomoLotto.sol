@@ -783,7 +783,7 @@ contract FomoLotto is ReentrancyGuard {
      **/
     bool public activated_ = false;
 
-    function activate(address _primaryToken, address _wbnbAddress, address _routerAddress)
+    function activate(address _primaryToken, address _wbnbAddress, address _routerAddress, address payable airdropFundAddress)
     public
     {
         // only owner can activate
@@ -809,6 +809,9 @@ contract FomoLotto is ReentrancyGuard {
 
         // set primary token
         setPrimaryToken(_primaryToken);
+
+        // set airdropFund
+        setAirdropFund(airdropFundAddress);
 
         // activate the contract
         activated_ = true;
