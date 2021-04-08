@@ -16,7 +16,7 @@ contract FomoLotto is ReentrancyGuard {
     // config
     uint256 public rndInit_ = 1 hours;         // round timer starts at this
     uint256 public rndInc_ = 10 seconds;       // every full key purchased adds this much to the timer
-    uint256 public rndMax_ = 24 hours;         // max length a round timer can be
+    uint256 public rndMax_ = 8 hours;         // max length a round timer can be
     uint256 public burnFundFee = 5;     // represent the key proceeds allocation percentage to the dev fund
     uint256 public initialBurnFee = 5;  // represent the key proceeds allocation percentage that will be burn
 
