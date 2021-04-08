@@ -372,6 +372,26 @@ contract FomoLotto is ReentrancyGuard {
         );
     }
 
+    function getRoundInfo(uint256 roundId)
+    public
+    view
+    returns (uint256, uint256, uint256, uint256, uint256, uint256, address)
+    {
+        // setup local rID
+        uint256 _rID = roundId;
+
+        return
+        (
+        _rID, //1
+        round_[_rID].keys, //2
+        round_[_rID].end, //3
+        round_[_rID].strt, //4
+        round_[_rID].pot, //5
+        round_[_rID].eth, //6
+        round_[_rID].addr               //7
+        );
+    }
+
     /**
      * @dev returns player info based on address.  if no address is given, it will
      * use msg.sender
