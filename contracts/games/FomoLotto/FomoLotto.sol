@@ -221,7 +221,7 @@ contract FomoLotto is ReentrancyGuard {
         if (_now > round_[_rID].end && round_[_rID].ended == false && round_[_rID].addr != address(0))
         {
             // end the round (distributes pot)
-            round_[_rID].ended = true;
+            endRound();
         }
 
         // get their earnings
@@ -417,24 +417,26 @@ contract FomoLotto is ReentrancyGuard {
         // grab time
         uint256 _now = now;
 
+        // check to see if end round needs to be ran
+        if (_now > round_[_rID].end && round_[_rID].ended == false)
+        {
+            // end the round (distributes pot) & start new round
+            endRound();
+        }
+
+        _rID = rID_;
+
         // if round is active
-        if (_now > round_[_rID].strt && (_now <= round_[_rID].end || (_now > round_[_rID].end && round_[_rID].addr == address(0))))
+        if (
+            _now >= round_[_rID].strt &&
+            (
+                _now <= round_[_rID].end ||
+                (_now > round_[_rID].end && round_[_rID].addr == address(0))
+            )
+        )
         {
             // call core
             core(_rID, _pID, value);
-
-            // if round is not active
-        } else {
-            // check to see if end round needs to be ran
-            if (_now > round_[_rID].end && round_[_rID].ended == false)
-            {
-                // end the round (distributes pot) & start new round
-                round_[_rID].ended = true;
-                endRound();
-            }
-
-            // put eth in players vault
-            plyr_[_pID].gen = plyr_[_pID].gen.add(value);
         }
     }
 
@@ -451,6 +453,12 @@ contract FomoLotto is ReentrancyGuard {
         // grab time
         uint256 _now = now;
 
+        if (_now > round_[_rID].end && round_[_rID].ended == false) {
+            // end the round (distributes pot) & start new round
+            endRound();
+
+        }
+
         // if round is active
         if (_now > round_[_rID].strt && (_now <= round_[_rID].end || (_now > round_[_rID].end && round_[_rID].addr == address(0))))
         {
@@ -463,11 +471,6 @@ contract FomoLotto is ReentrancyGuard {
             core(_rID, _pID, _eth);
 
             // if round is not active and end round needs to be ran
-        } else if (_now > round_[_rID].end && round_[_rID].ended == false) {
-            // end the round (distributes pot) & start new round
-            round_[_rID].ended = true;
-            endRound();
-
         }
     }
 
@@ -596,14 +599,13 @@ contract FomoLotto is ReentrancyGuard {
     function endRound()
     private
     {
-        // setup local rID
-        uint256 _rID = rID_;
+        round_[rID_].ended = true;
 
         // grab our winning player and team id's
-        address _winPID = round_[_rID].addr;
+        address _winPID = round_[rID_].addr;
 
         // grab our pot amount
-        uint256 _pot = round_[_rID].pot;
+        uint256 _pot = round_[rID_].pot;
 
         // calculate our winner share, community rewards, gen share,
         // and amount reserved for next pot
@@ -615,10 +617,9 @@ contract FomoLotto is ReentrancyGuard {
 
         // start next round
         rID_++;
-        _rID++;
-        round_[_rID].strt = now;
-        round_[_rID].end = now.add(rndInit_);
-        round_[_rID].pot = _res;
+        round_[rID_].strt = now;
+        round_[rID_].end = now.add(rndInit_);
+        round_[rID_].pot = _res;
     }
 
 
