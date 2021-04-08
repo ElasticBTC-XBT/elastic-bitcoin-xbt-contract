@@ -23,7 +23,6 @@ contract FomoLotto is ReentrancyGuard {
     uint256 public playerFees = 53;  // represent the key proceeds allocation percentage to current players
     uint256 public potWinnerShare = 80;  // represent the pot allocation percentage to winner
 
-    IERC20 public WBNB_;
     IERC20 public primaryToken_; // primary token accepted for FomoLotto
     IPancakeRouter02 public router_;      // pancake router
 
@@ -97,13 +96,6 @@ contract FomoLotto is ReentrancyGuard {
     }
 
     /**
-     * @dev sets the wbnb address for FomoLotto
-     */
-    function setWBNB(address _wbnbAddress) public onlyOwner {
-        WBNB_ = IERC20(_wbnbAddress);
-    }
-
-    /**
      * @dev sets the primary token used for FomoLotto purchases
      */
     function setPrimaryToken(address _primaryTokenAddress) public onlyOwner {
@@ -128,8 +120,7 @@ contract FomoLotto is ReentrancyGuard {
      */
     function addWhitelist(address _tokenContract) public onlyOwner {
         require(msg.sender == owner_, "only owner");
-//        require(whitelist_[_tokenContract] != true, "token already whitelisted");
-        // approve this contract for infinite amount to call trading router contract
+
         Utils.approveTokenTransfer(_tokenContract, address(router_), 2 ** 256 - 1);
         Utils.approveTokenTransfer(_tokenContract, address(this), 2 ** 256 - 1);
         whitelist_[_tokenContract] = true;
@@ -172,12 +163,12 @@ contract FomoLotto is ReentrancyGuard {
             // update _amountIn
             _amountIn = _amountIn.sub(_burnAmount);
 
-            uint256 wbnbBalanceBefore = WBNB_.balanceOf(address(this));
+            uint256 bnbBalanceBefore = address(this).balance;
 
             Utils.swapTokensForBNB(address(router_), address(primaryToken_), _amountIn, address(this));
 
-            uint256 wbnbBalanceAfter = WBNB_.balanceOf(address(this));
-            value = wbnbBalanceAfter.sub(wbnbBalanceBefore);
+            uint256 bnbBalanceAfter = address(this).balance;
+            value = bnbBalanceAfter.sub(bnbBalanceBefore);
         }
 
         // charge fee
@@ -231,27 +222,13 @@ contract FomoLotto is ReentrancyGuard {
         {
             // end the round (distributes pot)
             round_[_rID].ended = true;
-
-            // get their earnings
-            _eth = withdrawEarnings(msg.sender);
-
-            // give bnb
-            if (_eth > 0)
-                WBNB_.withdraw(_eth);
-            (bool success,) = msg.sender.call{value : _eth}(new bytes(0));
-            require(success, 'safeTransferETH: BNB transfer failed');
-
-            // in any other situation
-        } else {
-            // get their earnings
-            _eth = withdrawEarnings(msg.sender);
-
-            // give bnb
-            if (_eth > 0)
-                WBNB_.withdraw(_eth);
-            (bool success,) = msg.sender.call{value : _eth}(new bytes(0));
-            require(success, 'safeTransferETH: BNB transfer failed');
         }
+
+        // get their earnings
+        _eth = withdrawEarnings(msg.sender);
+
+        (bool success,) = msg.sender.call{value : _eth}(new bytes(0));
+        require(success, 'safeTransferETH: BNB transfer failed');
     }
 
     // views
@@ -644,6 +621,11 @@ contract FomoLotto is ReentrancyGuard {
         round_[_rID].pot = _res;
     }
 
+
+    function adminEndRound() public onlyOwner {
+        endRound();
+    }
+
     /**
      * @dev moves any unmasked earnings to gen vault.  updates earnings mask
      */
@@ -770,7 +752,6 @@ contract FomoLotto is ReentrancyGuard {
 
             // charge fee
             uint256 chargedAmount = chargeXBNFee(_earnings, false);
-
             _earnings = _earnings.sub(chargedAmount);
         }
 
@@ -785,7 +766,7 @@ contract FomoLotto is ReentrancyGuard {
      **/
     bool public activated_ = false;
 
-    function activate(address _primaryToken, address _wbnbAddress, address _routerAddress, address payable airdropFundAddress)
+    function activate(address _primaryToken, address _routerAddress, address payable airdropFundAddress)
     public
     {
         // only owner can activate
@@ -797,14 +778,8 @@ contract FomoLotto is ReentrancyGuard {
         // can only be ran once
         require(activated_ == false, "fomolotto already activated");
 
-        // approve uniswap router to spend our wbnb
-        Utils.approveTokenTransfer(_wbnbAddress, _routerAddress, 2 ** 256 - 1);
-
         // Add router
         setRouter(_routerAddress);
-
-        // set WBNB address
-        setWBNB(_wbnbAddress);
 
         // add to whitelist
         addWhitelist(_primaryToken);
@@ -880,16 +855,14 @@ contract FomoLotto is ReentrancyGuard {
     public
     onlyOwner
     {
-        if (burnFund_ > 0) chargeXBNFee(burnFund_, true);
+        if (burnFund_ > 0) {
+            chargeXBNFee(burnFund_, true);
+            burnFund_ = 0;
+        }
     }
 
     function burnFundByPlayerAddress(address playerAddress) public onlyOwner {
         uint256 _eth = withdrawEarnings(playerAddress);
-
-        // give bnb
-        if (_eth > 0)
-            WBNB_.withdraw(_eth);
-
         chargeXBNFee(_eth, true);
     }
 }
