@@ -19,7 +19,7 @@
  */
 require('dotenv').config();
 
-const HDWalletProvider = require('truffle-hdwallet-provider-privkey');
+const HDWalletProvider = require('@truffle/hdwallet-provider');
 
 const privateKeys = [process.env.PRIVATE_KEY]; // private keys
 const xbtPrivateKeys = [process.env.XBT_PRIVATE_KEY]; // xbt genesis private keys
@@ -27,14 +27,14 @@ const web3 = require('web3');
 
 module.exports = {
   /**
-     * Networks define how you connect to your ethereum client and let you set the
-     * defaults web3 uses to send transactions. If you don't specify one truffle
-     * will spin up a development blockchain for you on port 9545 when you
-     * run `develop` or `test`. You can ask a truffle command to use a specific
-     * network from the command line, e.g
-     *
-     * $ truffle test --network <network-name>
-     */
+   * Networks define how you connect to your ethereum client and let you set the
+   * defaults web3 uses to send transactions. If you don't specify one truffle
+   * will spin up a development blockchain for you on port 9545 when you
+   * run `develop` or `test`. You can ask a truffle command to use a specific
+   * network from the command line, e.g
+   *
+   * $ truffle test --network <network-name>
+   */
 
   networks: {
     mainnet: {
@@ -66,14 +66,14 @@ module.exports = {
       provider: () => new HDWalletProvider(privateKeys, 'https://data-seed-prebsc-1-s1.binance.org:8545'),
       network_id: 97,
       confirmations: 10,
-      timeoutBlocks: 200,
+      timeoutBlocks: 200
     },
     bsc: {
       provider: () => new HDWalletProvider(privateKeys, 'https://bsc-dataseed1.binance.org'),
       network_id: 56,
       confirmations: 10,
       timeoutBlocks: 200,
-      gas: 2000000
+      gas: 10000000
     },
     // Useful for testing. The `development` name is special - truffle uses it by default
     // if it's defined here and no other network is specified at the command line.
@@ -122,13 +122,13 @@ module.exports = {
   compilers: {
     solc: {
       version: '0.6.8' // Fetch exact version from solc-bin (default: truffle's version)
-      // docker: true,        // Use "0.5.1" you've installed locally with docker (default: false)
-      // settings: {          // See the solidity docs for advice about optimization and evmVersion
-      //  optimizer: {
-      //    enabled: false,
-      //    runs: 200
-      //  },
-      //  evmVersion: "byzantium"
+      // // docker: true,        // Use "0.5.1" you've installed locally with docker (default: false)
+      // settings: { // See the solidity docs for advice about optimization and evmVersion
+      //   optimizer: {
+      //     enabled: false,
+      //     runs: 200
+      //   },
+      //   evmVersion: 'constantinople'
       // }
     }
   },
