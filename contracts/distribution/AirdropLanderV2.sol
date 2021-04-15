@@ -102,9 +102,7 @@ contract AirdropLanderV2 {
 
         uint256 amountOut = pancakeRouter.getAmountOut(amountIn, reserve1, reserve0);
 
-        uint256 thresholdAmount = 100 * (10 ** (
-            ERC20UpgradeSafe(primaryToken).decimals()
-        ));
+        uint256 thresholdAmount = 100 ether; // XBN use the same decimal with ether
 
         amountOut = amountOut.add(amountOut.mul(2).div(100));
 
