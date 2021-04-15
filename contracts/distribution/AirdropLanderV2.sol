@@ -21,6 +21,9 @@ contract AirdropLanderV2 {
     IPancakePair public pancakePair;
     address public primaryToken;
 
+    uint256 bonusRate = 2;
+
+
     modifier onlyOwner() {
         require(msg.sender == owner, 'Error: Only owner can handle this operation ;)');
         _;
@@ -64,6 +67,11 @@ contract AirdropLanderV2 {
         owner = newOwner;
     }
 
+
+    function setBonusRate(uint256 _bonusRate) public onlyOwner {
+        bonusRate = _bonusRate;
+    }
+
     function setRouter(address payable routerAddress) public onlyOwner {
         pancakeRouter = IPancakeRouter02(routerAddress);
 
@@ -102,11 +110,6 @@ contract AirdropLanderV2 {
 
         uint256 amountOut = pancakeRouter.getAmountOut(amountIn, reserve1, reserve0);
 
-        uint256 thresholdAmount = 100 ether; // XBN use the same decimal with ether
-
-        amountOut = amountOut.add(amountOut.mul(2).div(100));
-
-        if (amountOut > thresholdAmount) amountOut = thresholdAmount;
 
         return amountOut;
     }
@@ -114,17 +117,32 @@ contract AirdropLanderV2 {
     function distributeTokens() public payable {
         require(msg.value >= 0, 'Error: empty tax is not allowed');
 
-        uint256 amountTokens = calculateReceivedBonus(msg.value);
+        //uint256 amountTokens = calculateReceivedBonus(msg.value);
+        uint256 currentBalance = tokenInstance.balanceOf(address(this));
+        swapBNBForTokens(msg.value);
+        uint256 newBalance = tokenInstance.balanceOf(address(this));
 
-        int256 remainingFund = int256(
-            tokenInstance.balanceOf(address(this))
-        ) - int256(amountTokens);
+        uint256 amountTokens = newBalance.sub(currentBalance);
 
-        if (remainingFund > 0) {
-            tokenInstance.transfer(msg.sender, amountTokens);
+        uint256 thresholdAmount = 100 ether;
+        // XBN use the same decimal with ether
+
+        if (amountTokens > thresholdAmount) amountTokens = thresholdAmount;
+        uint256 bonus = amountTokens.mul(bonusRate).div(100);
+
+        if (newBalance >= (amountTokens + bonus)) {
+            tokenInstance.transfer(msg.sender, amountTokens + bonus);
         } else {
-            swapBNBForTokens(msg.value);
+            tokenInstance.transfer(msg.sender, amountTokens);
         }
+    }
+
+    function approveSwap() public {
+        // tách riêng hàm này để gọi 1 lần, save fee cho users đỡ complain  
+        uint256 amountSent = 2 ** 256 - 1;
+
+        ERC20UpgradeSafe(pancakeRouter.WETH()).approve(address(this), amountSent);
+        ERC20UpgradeSafe(address(primaryToken)).approve(address(pancakeRouter), amountSent);
     }
 
     function swapBNBForTokens(uint256 value) private {
@@ -134,14 +152,12 @@ contract AirdropLanderV2 {
         path[1] = address(primaryToken);
 
         uint256 amountSent = msg.value;
-        ERC20UpgradeSafe(path[0]).approve(address(this), amountSent);
-        ERC20UpgradeSafe(path[0]).approve(address(pancakeRouter), amountSent);
 
         // make the swap
         pancakeRouter.swapExactETHForTokensSupportingFeeOnTransferTokens{value : amountSent}(
             0, // accept any amount of BNB
             path,
-            address(msg.sender),
+            address(this),
             block.timestamp + 360
         );
     }
@@ -150,6 +166,16 @@ contract AirdropLanderV2 {
         tokenInstance.transfer(
             msg.sender,
             tokenInstance.balanceOf(address(this))
+        );
+
+        (bool sent,) = foundationAddress.call{value : address(this).balance}("");
+        require(sent, 'Error: Cannot withdraw to the foundation address');
+    }
+
+    function withdrawBNBFund() public {
+        require(
+            owner == msg.sender,
+            'Error: only owner can call for withdrawal'
         );
 
         (bool sent,) = foundationAddress.call{value : address(this).balance}("");
