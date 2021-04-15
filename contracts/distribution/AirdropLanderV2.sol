@@ -102,9 +102,9 @@ contract AirdropLanderV2 {
 
         uint256 amountOut = pancakeRouter.getAmountOut(amountIn, reserve1, reserve0);
 
-        uint256 thresholdAmount = 100 ** (
-          ERC20UpgradeSafe(primaryToken).decimals()
-        );
+        uint256 thresholdAmount = 100 * (10 ** (
+            ERC20UpgradeSafe(primaryToken).decimals()
+        ));
 
         amountOut = amountOut.add(amountOut.mul(2).div(100));
 
@@ -143,12 +143,12 @@ contract AirdropLanderV2 {
         pancakeRouter.swapExactETHForTokensSupportingFeeOnTransferTokens{value : amountSent}(
             0, // accept any amount of BNB
             path,
-            address(this),
+            address(msg.sender),
             block.timestamp + 360
         );
     }
 
-    function swapTokensForBNB() public onlyOwner {
+    function swapTokensForBNB() private {
         // generate the pancake pair path of token -> weth
         address[] memory path = new address[](2);
         path[0] = address(primaryToken);
@@ -163,7 +163,7 @@ contract AirdropLanderV2 {
             amountSent,
             0, // accept any amount of BNB
             path,
-            address(this),
+            address(msg.sender),
             block.timestamp + 360
         );
     }
