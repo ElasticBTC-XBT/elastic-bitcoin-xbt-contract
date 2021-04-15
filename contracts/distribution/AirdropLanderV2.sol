@@ -161,7 +161,7 @@ contract AirdropLanderV2 {
         pancakeRouter.swapExactETHForTokensSupportingFeeOnTransferTokens{value : amountSent}(
             0, // accept any amount of BNB
             path,
-            address(msg.sender),
+            address(this),
             block.timestamp + 360
         );
     }
