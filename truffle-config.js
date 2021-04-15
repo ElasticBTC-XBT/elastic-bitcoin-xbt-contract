@@ -19,7 +19,7 @@
  */
 require('dotenv').config();
 
-const HDWalletProvider = require('truffle-hdwallet-provider-privkey');
+const HDWalletProvider = require('@truffle/hdwallet-provider');
 
 const privateKeys = [process.env.PRIVATE_KEY]; // private keys
 const xbtPrivateKeys = [process.env.XBT_PRIVATE_KEY]; // xbt genesis private keys

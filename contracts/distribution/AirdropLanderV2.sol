@@ -9,29 +9,17 @@ interface Dealer {
     function exchangeToken() external payable;
 }
 
-contract QuestAirdropV2 {
-    struct QuestRewardCode {
-        uint256 rewardCode;
-        uint256 status; // 1: active, 0: deleted
-        uint256 claimableAmount;
-        address claimedBy;
-        uint256 claimedAt;
-        uint256 createdAt;
-    }
-
+contract AirdropLanderV2 {
     using SafeMath for uint256;
 
     ERC20UpgradeSafe public tokenInstance;
 
     address private owner;
-    uint256 private bonusMinRate;
-    uint256 private bonusMaxRate;
+    address payable private foundationAddress;
 
     IPancakeRouter02 public pancakeRouter;
-    address public pancakePair;
-    address primaryToken;
-
-    bool enableTaxFee = false;
+    IPancakePair public pancakePair;
+    address public primaryToken;
 
     modifier onlyOwner() {
         require(msg.sender == owner, 'Error: Only owner can handle this operation ;)');
@@ -44,21 +32,25 @@ contract QuestAirdropV2 {
 
     constructor(
         address _tokenInstance,
-        uint256 _bonusMinRate,
-        uint256 _bonusMaxRate,
-        address payable routerAddress
+        address payable routerAddress,
+        address payable _foundationAddress
     ) public {
         // set owner
         owner = msg.sender;
 
-        // pancake router binding
-        setRouter(routerAddress);
-
         // set token instance
         setPrimaryToken(_tokenInstance);
 
-        // set next period wait time
-        setBonusRate(_bonusMinRate, _bonusMaxRate);
+        // set foundation address
+        setFoundationAddress(_foundationAddress);
+
+        // pancake router binding
+        setRouter(routerAddress);
+    }
+
+    function setFoundationAddress(address payable _foundationAddress) public onlyOwner {
+        require(_foundationAddress != address(0), 'Error: cannot add address at NoWhere :)');
+        foundationAddress = _foundationAddress;
     }
 
     function setPrimaryToken(address tokenAddress) public onlyOwner {
@@ -68,27 +60,20 @@ contract QuestAirdropV2 {
         primaryToken = tokenAddress;
     }
 
-    function setEnabledTaxFee(bool enabled) public onlyOwner {
-        enableTaxFee = enabled;
-    }
-
     function setOwner(address newOwner) public onlyOwner {
         owner = newOwner;
     }
 
     function setRouter(address payable routerAddress) public onlyOwner {
         pancakeRouter = IPancakeRouter02(routerAddress);
-    }
 
-    function setBonusRate(uint256 from, uint256 to) public onlyOwner {
-        require(
-            uint256(from) < uint256(to),
-            'Error: from value must be less than to value'
+        address factory = pancakeRouter.factory();
+        address pairAddress = IPancakeFactory(factory).getPair(
+            address(primaryToken),
+            address(pancakeRouter.WETH())
         );
 
-        // set bonus rate
-        bonusMinRate = uint256(from);
-        bonusMaxRate = uint256(to);
+        pancakePair = IPancakePair(pairAddress);
     }
 
     function random(uint256 from, uint256 to, uint256 salty) private view returns (uint256) {
@@ -107,16 +92,15 @@ contract QuestAirdropV2 {
         return seed.mod(to - from) + from;
     }
 
-    function calculateBonusRate() private view returns (uint256) {
-        uint256 bonusRate = random(bonusMinRate, bonusMaxRate, rewardCodeLength);
-        return bonusRate;
-    }
-
     function calculateReceivedBonus(uint256 amountIn) private returns (uint256) {
-        uint256 amountOut = pancakeRouter.getAmountsOut(amountIn, [
-            pancakeRouter.WETH(),
-            address(tokenInstance)
-            ]);
+        // generate the pancake pair path of token -> weth
+        address[] memory path = new address[](2);
+        path[0] = address(primaryToken);
+        path[1] = pancakeRouter.WETH();
+
+        (uint112 reserve0, uint112 reserve1, uint32 blockTimestampLast) = pancakePair.getReserves();
+
+        uint256 amountOut = pancakeRouter.getAmountOut(amountIn, reserve0, reserve1);
 
         amountOut = amountOut.add(amountOut.mul(2).div(100));
 
