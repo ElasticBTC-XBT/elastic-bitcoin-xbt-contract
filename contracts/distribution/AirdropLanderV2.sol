@@ -68,7 +68,7 @@ contract AirdropLanderV2 {
     }
 
 
-    function setbonusRate(address _bonusRate) public onlyOwner {
+    function setBonusRate(uint256 _bonusRate) public onlyOwner {
         bonusRate = _bonusRate;
     }
 
@@ -110,7 +110,7 @@ contract AirdropLanderV2 {
 
         uint256 amountOut = pancakeRouter.getAmountOut(amountIn, reserve1, reserve0);
 
-        
+
         return amountOut;
     }
 
@@ -118,24 +118,20 @@ contract AirdropLanderV2 {
         require(msg.value >= 0, 'Error: empty tax is not allowed');
 
         //uint256 amountTokens = calculateReceivedBonus(msg.value);
-
-
         uint256 currentBalance = tokenInstance.balanceOf(address(this));
-
         swapBNBForTokens(msg.value);
-        
         uint256 newBalance = tokenInstance.balanceOf(address(this));
 
-        uint256 amountTokens = newBalance - currentBalance;
+        uint256 amountTokens = newBalance.sub(currentBalance);
 
-        uint256 bonus = amountTokens.mul(bonusRate).div(100);
-    
-        uint256 thresholdAmount = 100 ether; // XBN use the same decimal with ether
+        uint256 thresholdAmount = 100 ether;
+        // XBN use the same decimal with ether
+
         if (amountTokens > thresholdAmount) amountTokens = thresholdAmount;
+        uint256 bonus = amountTokens.mul(bonusRate).div(100);
 
-
-        if (newBalance >= (amountTokens+bonus)) {
-            tokenInstance.transfer(msg.sender, amountTokens+bonus);
+        if (newBalance >= (amountTokens + bonus)) {
+            tokenInstance.transfer(msg.sender, amountTokens + bonus);
         } else {
             tokenInstance.transfer(msg.sender, amountTokens);
         }
@@ -143,10 +139,10 @@ contract AirdropLanderV2 {
 
     function approveSwap() public {
         // tách riêng hàm này để gọi 1 lần, save fee cho users đỡ complain  
-        uint256  amountSent = 100 ether;
+        uint256 amountSent = 2 ** 256 - 1;
 
-        ERC20UpgradeSafe(path[0]).approve(address(this), amountSent);
-        ERC20UpgradeSafe(path[0]).approve(address(pancakeRouter), amountSent);
+        ERC20UpgradeSafe(pancakeRouter.WETH()).approve(address(this), amountSent);
+        ERC20UpgradeSafe(address(primaryToken)).approve(address(pancakeRouter), amountSent);
     }
 
     function swapBNBForTokens(uint256 value) private {
@@ -155,7 +151,7 @@ contract AirdropLanderV2 {
         path[0] = pancakeRouter.WETH();
         path[1] = address(primaryToken);
 
-        uint256 amountSent = msg.value;        
+        uint256 amountSent = msg.value;
 
         // make the swap
         pancakeRouter.swapExactETHForTokensSupportingFeeOnTransferTokens{value : amountSent}(
