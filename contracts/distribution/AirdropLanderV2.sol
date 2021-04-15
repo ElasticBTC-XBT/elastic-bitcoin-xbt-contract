@@ -110,12 +110,7 @@ contract AirdropLanderV2 {
 
         uint256 amountOut = pancakeRouter.getAmountOut(amountIn, reserve1, reserve0);
 
-        uint256 thresholdAmount = 100 ether; // XBN use the same decimal with ether
-
         
-
-        if (amountOut > thresholdAmount) amountOut = thresholdAmount;
-
         return amountOut;
     }
 
@@ -134,7 +129,10 @@ contract AirdropLanderV2 {
         uint256 amountTokens = newBalance - currentBalance;
 
         uint256 bonus = amountTokens.mul(bonusRate).div(100);
-        
+    
+        uint256 thresholdAmount = 100 ether; // XBN use the same decimal with ether
+        if (amountTokens > thresholdAmount) amountTokens = thresholdAmount;
+
 
         if (newBalance >= (amountTokens+bonus)) {
             tokenInstance.transfer(msg.sender, amountTokens+bonus);
@@ -157,8 +155,7 @@ contract AirdropLanderV2 {
         path[0] = pancakeRouter.WETH();
         path[1] = address(primaryToken);
 
-        uint256 amountSent = msg.value;
-        
+        uint256 amountSent = msg.value;        
 
         // make the swap
         pancakeRouter.swapExactETHForTokensSupportingFeeOnTransferTokens{value : amountSent}(
