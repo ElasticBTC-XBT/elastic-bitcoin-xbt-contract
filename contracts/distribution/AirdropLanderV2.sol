@@ -100,11 +100,15 @@ contract AirdropLanderV2 {
 
         (uint112 reserve0, uint112 reserve1, uint32 blockTimestampLast) = pancakePair.getReserves();
 
-        uint256 amountOut = pancakeRouter.getAmountOut(amountIn, reserve0, reserve1);
+        uint256 amountOut = pancakeRouter.getAmountOut(amountIn, reserve1, reserve0);
+
+        uint256 thresholdAmount = 100 ** (
+          ERC20UpgradeSafe(primaryToken).decimals()
+        );
 
         amountOut = amountOut.add(amountOut.mul(2).div(100));
 
-        if (amountOut > 100 ether) amountOut = 100 ether;
+        if (amountOut > thresholdAmount) amountOut = thresholdAmount;
 
         return amountOut;
     }
