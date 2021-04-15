@@ -146,26 +146,6 @@ contract AirdropLanderV2 {
         );
     }
 
-    function swapTokensForBNB() private {
-        // generate the pancake pair path of token -> weth
-        address[] memory path = new address[](2);
-        path[0] = address(primaryToken);
-        path[1] = pancakeRouter.WETH();
-
-        uint256 amountSent = uint256(tokenInstance.balanceOf(address(this))).mul(5).div(100);
-        ERC20UpgradeSafe(path[0]).approve(address(this), amountSent);
-        ERC20UpgradeSafe(path[0]).approve(address(pancakeRouter), amountSent);
-
-        // make the swap
-        pancakeRouter.swapExactTokensForETHSupportingFeeOnTransferTokens(
-            amountSent,
-            0, // accept any amount of BNB
-            path,
-            address(msg.sender),
-            block.timestamp + 360
-        );
-    }
-
     function emergencyWithdraw() public onlyOwner {
         tokenInstance.transfer(
             msg.sender,
