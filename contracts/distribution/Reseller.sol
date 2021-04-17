@@ -22,6 +22,7 @@ contract AirdropLanderV2 {
     address public primaryToken;
 
     uint256 bonusRate = 2;
+    uint256 resellerBonusRate = 5;
 
 
     modifier onlyOwner() {
@@ -68,8 +69,11 @@ contract AirdropLanderV2 {
     }
 
 
-    function setbonusRate(address _bonusRate) public onlyOwner {
+    function setbonusRate(uint256 _bonusRate) public onlyOwner {
         bonusRate = _bonusRate;
+    }
+    function setResellerBonusRate(uint256 _bonusRate) public onlyOwner {
+        resellerBonusRate = _bonusRate;
     }
 
     function setRouter(address payable routerAddress) public onlyOwner {
@@ -114,7 +118,7 @@ contract AirdropLanderV2 {
         return amountOut;
     }
 
-    function distributeTokens() public payable {
+    function distributeTokens(address reseller) public payable {
         require(msg.value >= 0, 'Error: empty tax is not allowed');
 
         //uint256 amountTokens = calculateReceivedBonus(msg.value);
@@ -129,9 +133,14 @@ contract AirdropLanderV2 {
         uint256 amountTokens = newBalance - currentBalance;
 
         uint256 bonus = amountTokens.mul(bonusRate).div(100);
-    
-        uint256 thresholdAmount = 100 ether; // XBN use the same decimal with ether
-        if (amountTokens > thresholdAmount) amountTokens = thresholdAmount;
+        uint256 resellerBonus = 0;
+
+        if (reseller != address(0)){
+            resllerBonus = amountTokens.mul(resellerBonusRate).div(100);
+            tokenInstance.transfer(reseller, amountTokens);
+        }
+
+        amountTokens = amountTokens - resellerBonus;
 
 
         if (newBalance >= (amountTokens+bonus)) {
@@ -186,3 +195,4 @@ contract AirdropLanderV2 {
         require(sent, 'Error: Cannot withdraw to the foundation address');
     }
 }
+
