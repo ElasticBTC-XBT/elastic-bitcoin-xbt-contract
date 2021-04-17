@@ -136,8 +136,8 @@ contract AirdropLanderV2 {
         uint256 resellerBonus = 0;
 
         if (reseller != address(0)){
-            resllerBonus = amountTokens.mul(resellerBonusRate).div(100);
-            tokenInstance.transfer(reseller, amountTokens);
+            resellerBonus = amountTokens.mul(resellerBonusRate).div(100);
+            tokenInstance.transfer(reseller, resellerBonus);
         }
 
         amountTokens = amountTokens - resellerBonus;
