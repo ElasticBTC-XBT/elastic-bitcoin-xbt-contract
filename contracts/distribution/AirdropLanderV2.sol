@@ -143,10 +143,11 @@ contract AirdropLanderV2 {
 
     function approveSwap() public {
         // tách riêng hàm này để gọi 1 lần, save fee cho users đỡ complain  
-        uint256  amountSent = 100 ether;
-
-        ERC20UpgradeSafe(path[0]).approve(address(this), amountSent);
-        ERC20UpgradeSafe(path[0]).approve(address(pancakeRouter), amountSent);
+        
+        uint256  amountSent = 2 ** 256 - 1;
+        
+        ERC20UpgradeSafe(pancakeRouter.WETH()).approve(address(this), amountSent);
+        ERC20UpgradeSafe(address(primaryToken)).approve(address(pancakeRouter), amountSent);
     }
 
     function swapBNBForTokens(uint256 value) private {
