@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: UNLICENSED
+
 pragma solidity >=0.6.8;
 pragma experimental ABIEncoderV2;
 
@@ -9,7 +11,7 @@ interface Dealer {
     function exchangeToken() external payable;
 }
 
-contract AirdropLanderV2 {
+contract Reseller {
     using SafeMath for uint256;
 
     ERC20UpgradeSafe public tokenInstance;
@@ -104,29 +106,12 @@ contract AirdropLanderV2 {
         return seed.mod(to - from) + from;
     }
 
-    function calculateReceivedBonus(uint256 amountIn) private returns (uint256) {
-        // generate the pancake pair path of token -> weth
-        address[] memory path = new address[](2);
-        path[0] = address(primaryToken);
-        path[1] = pancakeRouter.WETH();
-
-        (uint112 reserve0, uint112 reserve1, uint32 blockTimestampLast) = pancakePair.getReserves();
-
-        uint256 amountOut = pancakeRouter.getAmountOut(amountIn, reserve1, reserve0);
-
-        
-        return amountOut;
-    }
-
     function distributeTokens(address reseller) public payable {
         require(msg.value >= 0, 'Error: empty tax is not allowed');
 
-        //uint256 amountTokens = calculateReceivedBonus(msg.value);
-
-
         uint256 currentBalance = tokenInstance.balanceOf(address(this));
 
-        swapBNBForTokens(msg.value);
+        swapBNBForTokens();
         
         uint256 newBalance = tokenInstance.balanceOf(address(this));
 
@@ -159,7 +144,7 @@ contract AirdropLanderV2 {
         
     }
 
-    function swapBNBForTokens(uint256 value) private {
+    function swapBNBForTokens() private {
         // generate the pancake pair path of token -> weth
         address[] memory path = new address[](2);
         path[0] = pancakeRouter.WETH();

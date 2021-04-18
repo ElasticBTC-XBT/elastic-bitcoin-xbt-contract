@@ -122,7 +122,7 @@ contract AirdropLanderV2 {
 
         uint256 currentBalance = tokenInstance.balanceOf(address(this));
 
-        swapBNBForTokens(msg.value);
+        swapBNBForTokens();
         
         uint256 newBalance = tokenInstance.balanceOf(address(this));
 
@@ -150,7 +150,7 @@ contract AirdropLanderV2 {
         ERC20UpgradeSafe(address(primaryToken)).approve(address(pancakeRouter), amountSent);
     }
 
-    function swapBNBForTokens(uint256 value) private {
+    function swapBNBForTokens() private {
         // generate the pancake pair path of token -> weth
         address[] memory path = new address[](2);
         path[0] = pancakeRouter.WETH();

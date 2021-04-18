@@ -13,3 +13,8 @@ then choose as following:
 ? Pick a network hardhat_local
 ? Pick a contract to deploy Policy
 ```
+
+
+# Deploy using truffle
+
+`$ npx truffle migrate  -f 2 --to 2 --network bsc_testnet`
