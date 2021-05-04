@@ -1,6 +1,6 @@
 {
   "engines": {
-    "node": "15.x"
+    "node": "14"
   },
   "name": "xbt",
   "version": "1.2.0",
@@ -10,9 +10,12 @@
     "truffle:migrate": "truffle migrate -f 2 --to 2 --reset --compile-all --network ganache",
     "truffle:console": "truffle console --network local",
     "truffle:migrate:mainnet": "truffle migrate -f 2 --to 2 --network=mainnet",
+    "truffle:migrate:testnet": "truffle migrate -f 2 --to 2 --reset --compile-all --network=bsc_testnet",
+    "verify": "truffle run verify XBN@0x7450F37085d66a823e6189FC2E6c6a214b141d19 --network bsc_testnet",
     "hardhat:start": "npx hardhat node --network hardhat",
     "oz_deploy": "npx openzeppelin deploy",
     "hardhat:compile": "hardhat compile --network ganache",
+    "hardhat:verify": "npx hardhat verify --network bsc_testnet 0xA5699adc4457b502D4F6C68CC0571172eFF0C33e",
     "deployXBT:hardhat": "hardhat deployXBT --network ganache",
     "deployAirdropLander:hardhat": "hardhat deployAirdropLander --network ganache",
     "compile-contracts": "./scripts/compile-contracts.sh",
@@ -26,6 +29,7 @@
   "devDependencies": {
     "@nomiclabs/buidler": "^1.4.8",
     "@nomiclabs/hardhat-ethers": "^2.0.1",
+    "@nomiclabs/hardhat-etherscan": "^2.1.2",
     "@nomiclabs/hardhat-waffle": "^2.0.0",
     "@openzeppelin/buidler-upgrades": "^1.2.1",
     "@openzeppelin/cli": "^2.8.2",
@@ -53,7 +57,7 @@
     "moment": "^2.29.1",
     "solidity-coverage": "^0.7.13",
     "truffle-hdwallet-provider": "^1.0.17",
-    "truffle-plugin-verify": "^0.5.6"
+    "truffle-plugin-verify": "^0.5.7"
   },
   "dependencies": {
     "@nomiclabs/hardhat-web3": "^2.0.0",
