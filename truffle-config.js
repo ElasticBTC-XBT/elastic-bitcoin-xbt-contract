@@ -72,12 +72,17 @@ module.exports = {
       provider: () =>
         new HDWalletProvider(
           privateKeys,
-          "https://data-seed-prebsc-1-s1.binance.org:8545"
+          "https://data-seed-prebsc-1-s2.binance.org:8545"
         ),
       network_id: 97,
       confirmations: 10,
       timeoutBlocks: 200,
-      // production: true,
+      gas: 5000000,
+      gasPrice: 24000000000,
+      skipDryRun: true,
+      networkCheckTimeout: 90000,
+      // Resolve time out error
+      // https://github.com/trufflesuite/truffle/issues/3356#issuecomment-721352724
     },
     bsc: {
       provider: () =>
