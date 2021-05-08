@@ -1,6 +1,6 @@
 {
   "engines": {
-    "node": "14"
+    "node": "15"
   },
   "name": "xbt",
   "version": "1.2.0",
