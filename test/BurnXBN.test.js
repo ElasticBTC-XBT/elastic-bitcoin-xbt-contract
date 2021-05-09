@@ -1,14 +1,14 @@
-const { contract, web3 } = require("@openzeppelin/test-environment");
-const { expectRevert } = require("@openzeppelin/test-helpers");
-const { expect } = require("chai");
-const moment = require("moment");
-const { getETHBalance, formatReadableValue } = require("../util/helpers");
+const { contract, web3 } = require('@openzeppelin/test-environment');
+const { expectRevert } = require('@openzeppelin/test-helpers');
+const { expect } = require('chai');
+const moment = require('moment');
+const { getETHBalance, formatReadableValue } = require('../util/helpers');
 
-const _require = require("app-root-path").require;
-const BlockchainCaller = _require("/util/blockchain_caller");
+const _require = require('app-root-path').require;
+const BlockchainCaller = _require('/util/blockchain_caller');
 const chain = new BlockchainCaller(web3);
-const MockERC20 = contract.fromArtifact("MockERC20");
-const XBNv2 = contract.fromArtifact("XBNV2");
+const MockERC20 = contract.fromArtifact('MockERC20');
+const XBNv2 = contract.fromArtifact('XBNV2');
 
 let token,
   otherToken,
@@ -18,12 +18,14 @@ let token,
   foundationWallet,
   buyer,
   anotherBuyer,
+  anotherBuyer2,
   anotherAccount3,
   anotherAccount2,
+  burnAddress,
   xbnV2;
 
-describe("TransferCoin", function() {
-  beforeEach("Setup contract for burning testing", async function() {
+describe('TransferCoin', function () {
+  beforeEach('Setup contract for burning testing', async function () {
     const accounts = await chain.getUserAccounts();
     owner = web3.utils.toChecksumAddress(accounts[0]);
     buyer = web3.utils.toChecksumAddress(accounts[4]);
@@ -33,22 +35,28 @@ describe("TransferCoin", function() {
     token = await MockERC20.new(4000);
     otherToken = await MockERC20.new(2000);
 
-    xbnV2 = await XBNv2.new(owner);
-    xbnV2.setBurnAddress(burnAddress);
-    xbnV2.setBurnRate("2");
+    xbnV2 = await XBNv2.new();
+    await xbnV2.initialize(owner);
+    await xbnV2.setBurnAddress(burnAddress);
+    await xbnV2.setBurnRate(2);
   });
 
-  describe("Burning flow", async function() {
-    it("owner is the first account", async function() {
+  describe('Burning flow', async function () {
+    it('should: owner is the first account', async function () {
       const _owner = await xbnV2.owner();
-      console.log({
-        _owner,
-        owner,
-      });
       expect(_owner).to.equal(owner);
     });
-    it("should: sent some coin to burn address", async function() {
-      console.log("Total supply: ", await xbnV2.totalSupply());
+
+    it('should: burn rate is set', async function () {
+      const BURN_RATE = 2;
+      await xbnV2.setBurnRate(BURN_RATE);
+      const contractBurnRate = await xbnV2._burnRate;
+      console.log(contractBurnRate);
+      expect(contractBurnRate).to.equal(BURN_RATE);
+    });
+
+    it('should: sent some coin to burn address', async function () {
+
       await xbnV2.transfer(anotherBuyer, 2000000);
       const tokenBalance = xbnV2.balanceOf(anotherBuyer);
       const burnBalance = xbnV2.balanceOf(burnAddress);

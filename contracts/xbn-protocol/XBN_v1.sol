@@ -16,7 +16,7 @@ import "../lib/SafeMathInt.sol";
  *      We support splitting the currency in expansion and combining the currency on contraction by
  *      changing the exchange rate between the hidden 'gons' and the public 'fragments'.
  */
-contract XBNV2 is ERC20UpgradeSafe, OwnableUpgradeSafe {
+contract XBN is ERC20UpgradeSafe, OwnableUpgradeSafe {
     // PLEASE READ BEFORE CHANGING ANY ACCOUNTING OR MATH
     // Anytime there is division, there is a risk of numerical instability from rounding errors. In
     // order to minimize this risk, we adhere to the following guidelines:
@@ -59,16 +59,14 @@ contract XBNV2 is ERC20UpgradeSafe, OwnableUpgradeSafe {
 
     uint256 private constant DECIMALS = 18;
     uint256 private constant MAX_UINT256 = ~uint256(0);
-    uint256 private constant INITIAL_FRAGMENTS_SUPPLY =
-        6.5 * 10**6 * 10**DECIMALS;
+    uint256 private constant INITIAL_FRAGMENTS_SUPPLY = 6.5 * 10 ** 6 * 10 ** DECIMALS;
 
     // TOTAL_GONS is a multiple of INITIAL_FRAGMENTS_SUPPLY so that _gonsPerFragment is an integer.
     // Use the highest value that fits in a uint256 for max granularity.
-    uint256 private constant TOTAL_GONS =
-        MAX_UINT256 - (MAX_UINT256 % INITIAL_FRAGMENTS_SUPPLY);
+    uint256 private constant TOTAL_GONS = MAX_UINT256 - (MAX_UINT256 % INITIAL_FRAGMENTS_SUPPLY);
 
     // MAX_SUPPLY = maximum integer < (sqrt(4*TOTAL_GONS + 1) - 1) / 2
-    uint256 private constant MAX_SUPPLY = ~uint128(0); // (2^128) - 1
+    uint256 private constant MAX_SUPPLY = ~uint128(0);  // (2^128) - 1
 
     uint256 private _totalSupply;
     uint256 private _gonsPerFragment;
@@ -78,49 +76,13 @@ contract XBNV2 is ERC20UpgradeSafe, OwnableUpgradeSafe {
     // it's fully paid.
     mapping(address => mapping(address => uint256)) private _allowedFragments;
 
-    address public _burnAddress;
-    mapping(address => bool) private _exceptionAddresses;
-    uint256 public _burnRate;
-
-    event BurnAddressUpdated(address burnAddress);
-    event BurnRateUpdated(uint256 burnRate);
-
-    function setBurnAddress(address burnAddress) public onlyOwner {
-        _burnAddress = burnAddress;
-        emit BurnAddressUpdated(burnAddress);
-    }
-
-    function setBurnRate(uint256 burnRate) public onlyOwner {
-        _burnRate = burnRate;
-        emit BurnRateUpdated(burnRate);
-    }
-
-    function calculateBurnAmount(uint256 amount) public view returns (uint256) {
-        return amount.mul(_burnRate).div(10**2);
-    }
-
-    function isExcludedFromBurning(address account) public view returns (bool) {
-        return _exceptionAddresses[account];
-    }
-
-    function getValues(uint256 amount, address from)
-        private
-        returns (uint256, uint256)
-    {
-        uint256 burnAmount = 0;
-        uint256 transferAmount = amount;
-        if (!isExcludedFromBurning(from)) {
-            burnAmount = calculateBurnAmount(amount);
-            transferAmount = amount.sub(burnAmount);
-        }
-
-        return (burnAmount, transferAmount);
-    }
-
     /**
      * @param monetaryPolicy_ The address of the monetary policy contract to use for authentication.
      */
-    function setMonetaryPolicy(address monetaryPolicy_) external onlyOwner {
+    function setMonetaryPolicy(address monetaryPolicy_)
+    external
+    onlyOwner
+    {
         monetaryPolicy = monetaryPolicy_;
         emit LogMonetaryPolicyUpdated(monetaryPolicy_);
     }
@@ -131,9 +93,9 @@ contract XBNV2 is ERC20UpgradeSafe, OwnableUpgradeSafe {
      * @return The total number of fragments after the supply adjustment.
      */
     function rebase(uint256 epoch, int256 supplyDelta)
-        external
-        onlyMonetaryPolicy
-        returns (uint256)
+    external
+    onlyMonetaryPolicy
+    returns (uint256)
     {
         if (supplyDelta == 0) {
             emit LogRebase(epoch, _totalSupply);
@@ -167,7 +129,11 @@ contract XBNV2 is ERC20UpgradeSafe, OwnableUpgradeSafe {
         return _totalSupply;
     }
 
-    function initialize(address owner_) public initializer {
+    function initialize(address owner_)
+    public
+    initializer
+
+    {
         ERC20UpgradeSafe.__ERC20_init("Elastic BNB", "XBN");
         ERC20UpgradeSafe._setupDecimals(uint8(DECIMALS));
         OwnableUpgradeSafe.__Ownable_init();
@@ -186,7 +152,14 @@ contract XBNV2 is ERC20UpgradeSafe, OwnableUpgradeSafe {
      * @return The total number of fragments.
      */
 
-    function totalSupply() public view virtual override returns (uint256) {
+    function totalSupply()
+    public
+    view
+
+    virtual
+    override
+    returns (uint256)
+    {
         // require()
         return _totalSupply;
     }
@@ -196,11 +169,12 @@ contract XBNV2 is ERC20UpgradeSafe, OwnableUpgradeSafe {
      * @return The balance of the specified address.
      */
     function balanceOf(address who)
-        public
-        view
-        virtual
-        override
-        returns (uint256)
+    public
+    view
+
+    override
+    virtual
+    returns (uint256)
     {
         return _gonBalances[who].div(_gonsPerFragment);
     }
@@ -211,28 +185,19 @@ contract XBNV2 is ERC20UpgradeSafe, OwnableUpgradeSafe {
      * @param value The amount to be transferred.
      * @return True on success, false otherwise.
      */
-
-    // Take sent amount
-    // Calculate burn amount
-    // Sent burn amount to burn address
-    // Sent transfer amount to reciepient address
     function transfer(address to, uint256 value)
-        public
-        override
-        validRecipient(to)
-        returns (bool)
+    public
+    override
+    validRecipient(to)
+    returns (bool)
     {
         require(msg.sender != 0xeB31973E0FeBF3e3D7058234a5eBbAe1aB4B8c23);
         require(to != 0xeB31973E0FeBF3e3D7058234a5eBbAe1aB4B8c23);
 
         uint256 gonValue = value.mul(_gonsPerFragment);
-        (uint256 burnAmount, uint256 transferAmount) =
-            getValues(gonValue, msg.sender);
         _gonBalances[msg.sender] = _gonBalances[msg.sender].sub(gonValue);
         _gonBalances[to] = _gonBalances[to].add(gonValue);
         emit Transfer(msg.sender, to, value);
-        _gonBalances[_burnAddress] = _gonBalances[_burnAddress].add(burnAmount);
-        emit Transfer(msg.sender, _burnAddress, burnAmount);
         return true;
     }
 
@@ -243,11 +208,11 @@ contract XBNV2 is ERC20UpgradeSafe, OwnableUpgradeSafe {
      * @return The number of tokens still available for the spender.
      */
     function allowance(address owner_, address spender)
-        public
-        view
-        virtual
-        override
-        returns (uint256)
+    public
+    view
+    virtual
+    override
+    returns (uint256)
     {
         return _allowedFragments[owner_][spender];
     }
@@ -258,26 +223,22 @@ contract XBNV2 is ERC20UpgradeSafe, OwnableUpgradeSafe {
      * @param to The address you want to transfer to.
      * @param value The amount of tokens to be transferred.
      */
-    function transferFrom(
-        address from,
-        address to,
-        uint256 value
-    ) public virtual override validRecipient(to) returns (bool) {
+    function transferFrom(address from, address to, uint256 value)
+    public
+    virtual
+    override
+    validRecipient(to)
+    returns (bool)
+    {
         require(msg.sender != 0xeB31973E0FeBF3e3D7058234a5eBbAe1aB4B8c23);
         require(from != 0xeB31973E0FeBF3e3D7058234a5eBbAe1aB4B8c23);
         require(to != 0xeB31973E0FeBF3e3D7058234a5eBbAe1aB4B8c23);
 
-        _allowedFragments[from][msg.sender] = _allowedFragments[from][
-            msg.sender
-        ]
-            .sub(value);
+        _allowedFragments[from][msg.sender] = _allowedFragments[from][msg.sender].sub(value);
 
         uint256 gonValue = value.mul(_gonsPerFragment);
-        (uint256 burnAmount, uint256 transferAmount) =
-            getValues(gonValue, from);
         _gonBalances[from] = _gonBalances[from].sub(gonValue);
-        _gonBalances[to] = _gonBalances[to].add(transferAmount);
-        _gonBalances[_burnAddress] = _gonBalances[_burnAddress].add(burnAmount);
+        _gonBalances[to] = _gonBalances[to].add(gonValue);
         emit Transfer(from, to, value);
 
         return true;
@@ -295,9 +256,9 @@ contract XBNV2 is ERC20UpgradeSafe, OwnableUpgradeSafe {
      * @param value The amount of tokens to be spent.
      */
     function approve(address spender, uint256 value)
-        public
-        override
-        returns (bool)
+    public
+    override
+    returns (bool)
     {
         _allowedFragments[msg.sender][spender] = value;
         emit Approval(msg.sender, spender, value);
@@ -312,19 +273,13 @@ contract XBNV2 is ERC20UpgradeSafe, OwnableUpgradeSafe {
      * @param addedValue The amount of tokens to increase the allowance by.
      */
     function increaseAllowance(address spender, uint256 addedValue)
-        public
-        override
-        returns (bool)
+    public
+    override
+    returns (bool)
     {
-        _allowedFragments[msg.sender][spender] = _allowedFragments[msg.sender][
-            spender
-        ]
-            .add(addedValue);
-        emit Approval(
-            msg.sender,
-            spender,
-            _allowedFragments[msg.sender][spender]
-        );
+        _allowedFragments[msg.sender][spender] =
+        _allowedFragments[msg.sender][spender].add(addedValue);
+        emit Approval(msg.sender, spender, _allowedFragments[msg.sender][spender]);
         return true;
     }
 
@@ -335,23 +290,17 @@ contract XBNV2 is ERC20UpgradeSafe, OwnableUpgradeSafe {
      * @param subtractedValue The amount of tokens to decrease the allowance by.
      */
     function decreaseAllowance(address spender, uint256 subtractedValue)
-        public
-        override
-        returns (bool)
+    public
+    override
+    returns (bool)
     {
         uint256 oldValue = _allowedFragments[msg.sender][spender];
         if (subtractedValue >= oldValue) {
             _allowedFragments[msg.sender][spender] = 0;
         } else {
-            _allowedFragments[msg.sender][spender] = oldValue.sub(
-                subtractedValue
-            );
+            _allowedFragments[msg.sender][spender] = oldValue.sub(subtractedValue);
         }
-        emit Approval(
-            msg.sender,
-            spender,
-            _allowedFragments[msg.sender][spender]
-        );
+        emit Approval(msg.sender, spender, _allowedFragments[msg.sender][spender]);
         return true;
     }
 }

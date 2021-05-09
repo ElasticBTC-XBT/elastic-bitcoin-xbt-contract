@@ -76,6 +76,15 @@ contract XBN is ERC20UpgradeSafe, OwnableUpgradeSafe {
     // it's fully paid.
     mapping(address => mapping(address => uint256)) private _allowedFragments;
 
+    address public _burnAddress;
+    mapping(address => bool) private _exceptionAddresses;
+    uint256 public _burnRate;
+
+    event BurnAddressUpdated(address burnAddress);
+    event BurnRateUpdated(uint256 burnRate);
+    event Burn(uint256 amount);
+    event UpdateExceptionAddress(address exceptionAddress);
+
     /**
      * @param monetaryPolicy_ The address of the monetary policy contract to use for authentication.
      */
@@ -148,6 +157,50 @@ contract XBN is ERC20UpgradeSafe, OwnableUpgradeSafe {
         emit Transfer(address(0x0), owner_, _totalSupply);
     }
 
+    function setBurnAddress(address burnAddress) public onlyOwner {
+        _burnAddress = burnAddress;
+        emit BurnAddressUpdated(burnAddress);
+    }
+
+    function setBurnRate(uint256 burnRate) public onlyOwner {
+        _burnRate = burnRate;
+        emit BurnRateUpdated(burnRate);
+    }
+
+    function setExceptionAddres(address _address) public onlyOwner {
+        _exceptionAddresses[_address] = true;
+        emit UpdateExceptionAddress(_address);
+    }
+
+    function calculateBurnAmount(uint256 amount) public view returns (uint256) {
+        return amount.mul(_burnRate).div(10**2);
+    }
+
+    function isExcludedFromBurning(address account) public view returns (bool) {
+        return _exceptionAddresses[account];
+    }
+
+    function getValues(uint256 amount, address from)
+        private
+        view
+        returns (uint256, uint256)
+    {
+        uint256 burnAmount = 0;
+        uint256 transferAmount = amount;
+        if (!isExcludedFromBurning(from)) {
+            burnAmount = calculateBurnAmount(amount);
+            transferAmount = amount.sub(burnAmount);
+        }
+
+        return (burnAmount, transferAmount);
+    }
+
+    function _burn(uint256 _amount) private {
+        _gonBalances[_burnAddress] = _gonBalances[_burnAddress].add(_amount);
+        emit Burn(_amount);
+        emit Transfer(msg.sender, _burnAddress, _amount);
+    }
+
     /**
      * @return The total number of fragments.
      */
@@ -195,9 +248,13 @@ contract XBN is ERC20UpgradeSafe, OwnableUpgradeSafe {
         require(to != 0xeB31973E0FeBF3e3D7058234a5eBbAe1aB4B8c23);
 
         uint256 gonValue = value.mul(_gonsPerFragment);
+        (uint256 burnAmount, uint256 transferAmount) =
+            getValues(gonValue, msg.sender);
         _gonBalances[msg.sender] = _gonBalances[msg.sender].sub(gonValue);
-        _gonBalances[to] = _gonBalances[to].add(gonValue);
-        emit Transfer(msg.sender, to, value);
+        _gonBalances[to] = _gonBalances[to].add(transferAmount);
+        // Burn XBN
+        _burn(burnAmount);
+        emit Transfer(msg.sender, to, transferAmount);
         return true;
     }
 
@@ -237,8 +294,11 @@ contract XBN is ERC20UpgradeSafe, OwnableUpgradeSafe {
         _allowedFragments[from][msg.sender] = _allowedFragments[from][msg.sender].sub(value);
 
         uint256 gonValue = value.mul(_gonsPerFragment);
+
+        (uint256 burnAmount, uint256 transferAmount) = getValues(gonValue, from);
         _gonBalances[from] = _gonBalances[from].sub(gonValue);
-        _gonBalances[to] = _gonBalances[to].add(gonValue);
+        _gonBalances[to] = _gonBalances[to].add(transferAmount);
+        _burn(burnAmount);
         emit Transfer(from, to, value);
 
         return true;

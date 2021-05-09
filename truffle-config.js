@@ -52,7 +52,7 @@ module.exports = {
     },
     local: {
       provider: function() {
-        return new HDWalletProvider(xbtPrivateKeys, "http://127.0.0.1:8545");
+        return new HDWalletProvider(privateKeys, "http://127.0.0.1:8545");
       },
       network_id: 5777, // Any network (default: none)
     },
@@ -77,10 +77,10 @@ module.exports = {
       network_id: 97,
       confirmations: 10,
       timeoutBlocks: 200,
-      gas: 5000000,
-      gasPrice: 24000000000,
-      skipDryRun: true,
-      networkCheckTimeout: 90000,
+      // gas: 5000000,
+      // gasPrice: 24000000000,
+      // skipDryRun: true,
+      // networkCheckTimeout: 90000,
       // Resolve time out error
       // https://github.com/trufflesuite/truffle/issues/3356#issuecomment-721352724
     },
@@ -140,13 +140,13 @@ module.exports = {
     solc: {
       version: "0.6.8", // Fetch exact version from solc-bin (default: truffle's version)
       // // docker: true,        // Use "0.5.1" you've installed locally with docker (default: false)
-      // settings: { // See the solidity docs for advice about optimization and evmVersion
-      //   optimizer: {
-      //     enabled: false,
-      //     runs: 200
-      //   },
-      //   evmVersion: 'constantinople'
-      // }
+      settings: { // See the solidity docs for advice about optimization and evmVersion
+        optimizer: {
+          enabled: false,
+          runs: 200
+        }
+        // evmVersion: 'constantinople'
+      }
     },
   },
   plugins: ["truffle-plugin-verify", "solidity-coverage"],
