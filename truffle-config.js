@@ -78,8 +78,8 @@ module.exports = {
       confirmations: 10,
       timeoutBlocks: 200,
       // gas: 5000000,
-      // gasPrice: 24000000000,
-      // skipDryRun: true,
+      gasPrice: 10e9,
+      skipDryRun: true,
       // networkCheckTimeout: 90000,
       // Resolve time out error
       // https://github.com/trufflesuite/truffle/issues/3356#issuecomment-721352724
@@ -139,7 +139,7 @@ module.exports = {
   compilers: {
     solc: {
       version: "0.6.8", // Fetch exact version from solc-bin (default: truffle's version)
-      // // docker: true,        // Use "0.5.1" you've installed locally with docker (default: false)
+      // docker: false,        // Use "0.5.1" you've installed locally with docker (default: false)
       settings: { // See the solidity docs for advice about optimization and evmVersion
         optimizer: {
           enabled: false,

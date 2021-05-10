@@ -51,10 +51,10 @@ module.exports = {
       network_id: 97,
       confirmations: 10,
       timeoutBlocks: 200,
-      // gas: 5000000,
-      // gasPrice: 24000000000,
-      // skipDryRun: true,
-      // networkCheckTimeout: 90000,
+      gas: 5000000,
+      gasPrice: 24000000000,
+      skipDryRun: true,
+      networkCheckTimeout: 90000,
       // Resolve time out error
       // https://github.com/trufflesuite/truffle/issues/3356#issuecomment-721352724
     },

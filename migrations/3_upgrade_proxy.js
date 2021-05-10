@@ -1,14 +1,15 @@
-const path = require("path");
-require("dotenv").config({
-  path: path.resolve(__dirname, "../.env"),
+const path = require('path');
+require('dotenv').config({
+  path: path.resolve(__dirname, '../.env')
 });
-const { upgradeProxy } = require("@openzeppelin/truffle-upgrades");
+const { upgradeProxy } = require('@openzeppelin/truffle-upgrades');
 
-// Deploy XBNv2
-const XTNv2 = artifacts.require("XTNv2");
+// Upgrade XBN
+const XBN = artifacts.require('XBN');
 
-module.exports = async function(deployer, network, accounts) {
-  const address = "0x76bF8D7E2186fF8C64D2b588f9e35d1d9D803906";
+module.exports = async function (deployer, network, accounts) {
+  const address = '0x0501479339Be0E4A54f4a04De77CB402e250EA18';
 
-  await upgradeProxy(address, XTNv2, { deployer });
-};
+  await upgradeProxy(address, XBN, { deployer });
+}
+
