@@ -79,11 +79,14 @@ contract XBN is ERC20UpgradeSafe, OwnableUpgradeSafe {
     address public _burnAddress;
     mapping(address => bool) private _exceptionAddresses;
     uint256 public _burnRate;
+    uint256 public _burnThreshold;
 
     event BurnAddressUpdated(address burnAddress);
     event BurnRateUpdated(uint256 burnRate);
     event Burn(uint256 amount);
     event UpdateExceptionAddress(address exceptionAddress);
+    event UpdateBurnThreshold(uint256 burnThreshold);
+
 
     /**
      * @param monetaryPolicy_ The address of the monetary policy contract to use for authentication.
@@ -167,14 +170,23 @@ contract XBN is ERC20UpgradeSafe, OwnableUpgradeSafe {
         emit BurnRateUpdated(burnRate);
     }
 
-    function setExceptionAddres(address _address) public onlyOwner {
+    function setBurnThreshold(uint burnThreshold) public onlyOwner {
+        _burnThreshold = burnThreshold;
+        emit UpdateBurnThreshold(burnThreshold);
+    }
+
+    function setExceptionAddress(address _address) public onlyOwner {
         _exceptionAddresses[_address] = true;
         emit UpdateExceptionAddress(_address);
     }
 
     function calculateBurnAmount(uint256 amount) public view returns (uint256) {
-        return amount.mul(_burnRate).div(10**2);
+        if (amount > _burnThreshold) {
+            return amount.mul(_burnRate).div(10**2);
+        }
+        return 0;
     }
+
 
     function isExcludedFromBurning(address account) public view returns (bool) {
         return _exceptionAddresses[account];
@@ -189,7 +201,9 @@ contract XBN is ERC20UpgradeSafe, OwnableUpgradeSafe {
         uint256 transferAmount = amount;
         if (!isExcludedFromBurning(from)) {
             burnAmount = calculateBurnAmount(amount);
-            transferAmount = amount.sub(burnAmount);
+            if (amount > _burnThreshold) {
+                transferAmount = amount.sub(burnAmount);
+            }
         }
 
         return (burnAmount, transferAmount);
