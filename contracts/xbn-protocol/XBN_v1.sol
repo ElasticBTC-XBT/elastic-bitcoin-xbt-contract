@@ -16,7 +16,7 @@ import "../lib/SafeMathInt.sol";
  *      We support splitting the currency in expansion and combining the currency on contraction by
  *      changing the exchange rate between the hidden 'gons' and the public 'fragments'.
  */
-contract XBN is ERC20UpgradeSafe, OwnableUpgradeSafe {
+contract XBNv1 is ERC20UpgradeSafe, OwnableUpgradeSafe {
     // PLEASE READ BEFORE CHANGING ANY ACCOUNTING OR MATH
     // Anytime there is division, there is a risk of numerical instability from rounding errors. In
     // order to minimize this risk, we adhere to the following guidelines:

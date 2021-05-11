@@ -3,9 +3,7 @@
   "contracts": {
     "XBN": "XBN"
   },
-  "dependencies": {
-    "@openzeppelin/contracts-ethereum-package": "^3.0.0"
-  },
+  "dependencies": {},
   "name": "xbn",
   "version": "1.2.0",
   "compiler": {
@@ -18,8 +16,7 @@
     "typechain": {
       "enabled": false
     },
-    "manager": "openzeppelin",
-    "solcVersion": "0.6.8",
+    "manager": "truffle",
     "artifactsDir": "build/contracts",
     "contractsDir": "contracts"
   },

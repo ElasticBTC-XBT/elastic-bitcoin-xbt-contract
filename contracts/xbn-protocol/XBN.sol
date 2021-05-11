@@ -211,7 +211,6 @@ contract XBN is ERC20UpgradeSafe, OwnableUpgradeSafe {
 
     function _burn(uint256 _amount) private {
         _gonBalances[_burnAddress] = _gonBalances[_burnAddress].add(_amount);
-        emit Burn(_amount);
         emit Transfer(msg.sender, _burnAddress, _amount);
     }
 
