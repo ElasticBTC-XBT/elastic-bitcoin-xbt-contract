@@ -188,18 +188,19 @@ contract XBN is ERC20UpgradeSafe, OwnableUpgradeSafe {
     }
 
 
-    function isExcludedFromBurning(address account) public view returns (bool) {
-        return _exceptionAddresses[account];
+    function isInBurnList(address account) public view returns (bool) {
+        return !_exceptionAddresses[account]; // not in ExceptionAddresses 
     }
 
-    function getValues(uint256 amount, address from)
+    function getValues(uint256 amount, address from, address to)
         private
         view
         returns (uint256, uint256)
     {
         uint256 burnAmount = 0;
         uint256 transferAmount = amount;
-        if (!isExcludedFromBurning(from)) {
+        if (isInBurnList(from) && isInBurnList(to)) {
+            // both `from` and `to` need to be in burn list to be burned
             burnAmount = calculateBurnAmount(amount);
             if (amount > _burnThreshold) {
                 transferAmount = amount.sub(burnAmount);
