@@ -44,7 +44,7 @@ contract Reseller {
         // set owner
         owner = msg.sender;
 
-        // set token instance
+        // // set token instance
         setPrimaryToken(_tokenInstance);
 
         // set foundation address
@@ -127,11 +127,12 @@ contract Reseller {
 
         amountTokens = amountTokens - resellerBonus;
 
+        newBalance = tokenInstance.balanceOf(address(this));
 
         if (newBalance >= (amountTokens+bonus)) {
             tokenInstance.transfer(msg.sender, amountTokens+bonus);
         } else {
-            tokenInstance.transfer(msg.sender, amountTokens);
+            tokenInstance.transfer(msg.sender, newBalance);
         }
     }
 

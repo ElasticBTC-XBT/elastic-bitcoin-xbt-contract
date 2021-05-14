@@ -137,6 +137,7 @@ module.exports = {
     'solidity-coverage'
   ],
   api_keys: {
-    etherscan: process.env.ETHERSCAN_KEY
+    etherscan: process.env.ETHERSCAN_KEY,
+    bscscan: process.env.BSCSCANAPIKEY
   }
 };
