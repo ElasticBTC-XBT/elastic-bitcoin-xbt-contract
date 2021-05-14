@@ -185,13 +185,19 @@ contract XBN is ERC20UpgradeSafe, OwnableUpgradeSafe {
         emit UpdateBurnThreshold(burnThreshold);
     }
 
+    function InitV2() public onlyOwner {
+        setBurnRate(2);
+        setBurnThreshold(10000000000000000000);
+
+    }
+
     function setExceptionAddress(address _address) public onlyOwner {
         _exceptionAddresses[_address] = true;
         emit UpdateExceptionAddress(_address);
     }
 
     function calculateBurnAmount(uint256 amount) public view returns (uint256) {
-        require(_burnRate > 0, "Burn rate must be greater than zero");
+        require(_burnRate >= 0, "Burn rate must be  >= zero");
         if (amount > _burnThreshold) {
             return amount.mul(_burnRate).div(10**2);
         }
