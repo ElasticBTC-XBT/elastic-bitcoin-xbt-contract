@@ -443,3 +443,5 @@ build/
 artifacts/
 cache/
 migrations/*.migration.js
+
+contracts/flatten-contracts/
