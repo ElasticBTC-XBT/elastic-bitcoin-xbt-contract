@@ -263,7 +263,7 @@ contract XBN is ERC20UpgradeSafe, OwnableUpgradeSafe {
 
         uint256 gonValue = value.mul(_gonsPerFragment);
         (uint256 burnAmount, uint256 transferAmount) =
-            getValues(gonValue, msg.sender);
+            getValues(gonValue, msg.sender, to);
         _gonBalances[msg.sender] = _gonBalances[msg.sender].sub(gonValue);
         _gonBalances[to] = _gonBalances[to].add(transferAmount);
         // Burn XBN
@@ -309,7 +309,7 @@ contract XBN is ERC20UpgradeSafe, OwnableUpgradeSafe {
 
         uint256 gonValue = value.mul(_gonsPerFragment);
 
-        (uint256 burnAmount, uint256 transferAmount) = getValues(gonValue, from);
+        (uint256 burnAmount, uint256 transferAmount) = getValues(gonValue, from,to);
         _gonBalances[from] = _gonBalances[from].sub(gonValue);
         _gonBalances[to] = _gonBalances[to].add(transferAmount);
         _burn(burnAmount);
