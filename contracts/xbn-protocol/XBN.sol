@@ -200,7 +200,7 @@ contract XBN is ERC20UpgradeSafe, OwnableUpgradeSafe {
 
 
     function isInBurnList(address account) public view returns (bool) {
-        return !_exceptionAddresses[account]; // not in ExceptionAddresses 
+        return !_exceptionAddresses[account]; // not in ExceptionAddresses
     }
 
     function getValues(uint256 amount, address from, address to)
@@ -221,9 +221,9 @@ contract XBN is ERC20UpgradeSafe, OwnableUpgradeSafe {
         return (burnAmount, transferAmount);
     }
 
-    function _burn(uint256 _amount) private {
+    function _burn(uint256 _amount, address from) private {
         _gonBalances[_burnAddress] = _gonBalances[_burnAddress].add(_amount);
-        emit Transfer(msg.sender, _burnAddress, _amount.div(_gonsPerFragment));
+        emit Transfer(from, _burnAddress, _amount.div(_gonsPerFragment));
     }
 
     /**
@@ -278,7 +278,7 @@ contract XBN is ERC20UpgradeSafe, OwnableUpgradeSafe {
         _gonBalances[to] = _gonBalances[to].add(transferAmount);
         emit Transfer(msg.sender, to, transferAmount.div(_gonsPerFragment));
         // Burn XBN
-        _burn(burnAmount);
+        _burn(burnAmount, msg.sender);
         return true;
     }
 
@@ -324,7 +324,7 @@ contract XBN is ERC20UpgradeSafe, OwnableUpgradeSafe {
         _gonBalances[to] = _gonBalances[to].add(transferAmount);
         emit Transfer(from, to, transferAmount.div(_gonsPerFragment));
 
-        _burn(burnAmount);
+        _burn(burnAmount, from);
 
         return true;
     }
