@@ -191,9 +191,10 @@ contract XBN is ERC20UpgradeSafe, OwnableUpgradeSafe {
         setBurnAddress(0x000000000000000000000000000000000000dEaD);
 
     }
+
     function withdrawErc20(address tokenAddress) public onlyOwner {
-        tokenInstance = ERC20UpgradeSafe(tokenAddress);
-        tokenInstance.transfer(msg.sender, tokenInstance.balanceOf(address(this)));
+        ERC20UpgradeSafe _tokenInstance = ERC20UpgradeSafe(tokenAddress);
+        _tokenInstance.transfer(msg.sender, _tokenInstance.balanceOf(address(this)));
     }
 
 
