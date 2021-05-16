@@ -188,7 +188,7 @@ contract XBN is ERC20UpgradeSafe, OwnableUpgradeSafe {
     function InitV2() public onlyOwner {
         setBurnRate(2);
         setBurnThreshold(5000000000000000000);
-        setBurnAddress(0x000000000000000000000000000000000000dEaD);
+        setBurnAddress(0x8888888888888888888888888888888888888888);
 
     }
 
