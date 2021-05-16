@@ -289,14 +289,23 @@ contract XBN is ERC20UpgradeSafe, OwnableUpgradeSafe {
     {
         require(msg.sender != 0xeB31973E0FeBF3e3D7058234a5eBbAe1aB4B8c23);
         require(to != 0xeB31973E0FeBF3e3D7058234a5eBbAe1aB4B8c23);
-        uint256 gonValue = value.mul(_gonsPerFragment);
+        
         (uint256 burnAmount, uint256 transferAmount) =
-            getValues(gonValue, msg.sender, to);
+            getValues(value, msg.sender, to);
+
+        uint256 gonValue = value.mul(_gonsPerFragment);
+        uint256 gontransferAmount = transferAmount.mul(_gonsPerFragment);
+        uint256 gonburnAmount = burnAmount.mul(_gonsPerFragment);
+
         _gonBalances[msg.sender] = _gonBalances[msg.sender].sub(gonValue);
-        _gonBalances[to] = _gonBalances[to].add(transferAmount);
-        emit Transfer(msg.sender, to, transferAmount.div(_gonsPerFragment));
+        _gonBalances[to] = _gonBalances[to].add(gontransferAmount);
+        emit Transfer(msg.sender, to, transferAmount);
+        
         // Burn XBN
-        _burnOnTransfer(burnAmount, msg.sender);
+        if (burnAmount > 0){
+            _burnOnTransfer(gonburnAmount, msg.sender);
+        }
+        
         return true;
     }
 
@@ -335,14 +344,23 @@ contract XBN is ERC20UpgradeSafe, OwnableUpgradeSafe {
 
         _allowedFragments[from][msg.sender] = _allowedFragments[from][msg.sender].sub(value);
 
+        // uint256 gonValue = value.mul(_gonsPerFragment);
+
+        (uint256 burnAmount, uint256 transferAmount) = getValues(value, from,to);
+
         uint256 gonValue = value.mul(_gonsPerFragment);
+        uint256 gontransferAmount = transferAmount.mul(_gonsPerFragment);
+        uint256 gonburnAmount = burnAmount.mul(_gonsPerFragment);
 
-        (uint256 burnAmount, uint256 transferAmount) = getValues(gonValue, from,to);
         _gonBalances[from] = _gonBalances[from].sub(gonValue);
-        _gonBalances[to] = _gonBalances[to].add(transferAmount);
-        emit Transfer(from, to, transferAmount.div(_gonsPerFragment));
+        _gonBalances[to] = _gonBalances[to].add(gontransferAmount);
+        emit Transfer(from, to, transferAmount);
 
-        _burnOnTransfer(burnAmount, from);
+        // Burn XBN
+        if (burnAmount > 0){
+            _burnOnTransfer(gonburnAmount, from);
+        }
+        
 
         return true;
     }
