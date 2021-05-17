@@ -165,10 +165,10 @@ contract XBN is ERC20UpgradeSafe, OwnableUpgradeSafe {
         return _gonsPerFragment;
     }
 
-    function setGonsPerFragment(uint256 gons) public onlyOwner {
-        _gonsPerFragment = gons;
-        emit UpdateGonsPerFragment(gons);
-    }
+    // function setGonsPerFragment(uint256 gons) public onlyOwner {
+    //     _gonsPerFragment = gons;
+    //     emit UpdateGonsPerFragment(gons);
+    // }
 
     function setBurnAddress(address burnAddress) public onlyOwner {
         _burnAddress = burnAddress;

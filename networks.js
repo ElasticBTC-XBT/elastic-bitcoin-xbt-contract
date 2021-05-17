@@ -59,11 +59,16 @@ module.exports = {
       // https://github.com/trufflesuite/truffle/issues/3356#issuecomment-721352724
     },
     bsc: {
-      url: "https://bsc-dataseed1.binance.org",
-      accounts: [process.env.PRIVATE_KEY],
-      gas: "auto",
-      gasPrice: "auto",
+      provider: () =>
+        new HDWalletProvider(
+          privateKeys,
+          "https://bsc-dataseed1.binance.org"
+        ),
+      
+      gas: 5000000,
+      gasPrice: 24000000000,
       chainId: 56,
+      network_id: 56,
     },
   },
 };
