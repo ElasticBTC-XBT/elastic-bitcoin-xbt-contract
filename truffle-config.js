@@ -17,13 +17,13 @@
  * phrase from a file you've .gitignored so it doesn't accidentally become public.
  *
  */
-require('dotenv').config();
+require("dotenv").config();
 
-const HDWalletProvider = require('@truffle/hdwallet-provider');
+const HDWalletProvider = require("@truffle/hdwallet-provider");
 
 const privateKeys = [process.env.PRIVATE_KEY]; // private keys
 const xbtPrivateKeys = [process.env.XBT_PRIVATE_KEY]; // xbt genesis private keys
-const web3 = require('web3');
+const web3 = require("web3");
 
 module.exports = {
   /**
@@ -38,42 +38,59 @@ module.exports = {
 
   networks: {
     mainnet: {
-      provider: function () {
-        return new HDWalletProvider(privateKeys, `https://mainnet.infura.io/v3/${process.env.INFURA_ID}`);
+      provider: function() {
+        return new HDWalletProvider(
+          privateKeys,
+          `https://mainnet.infura.io/v3/${process.env.INFURA_ID}`
+        );
       },
       gas: 2000000,
-      gasPrice: web3.utils.toWei('50', 'gwei'),
+      gasPrice: web3.utils.toWei("50", "gwei"),
       network_id: 1,
       skipDryRun: true,
-      networkCheckTimeout: 100000
+      networkCheckTimeout: 100000,
     },
     local: {
-      provider: function () {
-        return new HDWalletProvider(xbtPrivateKeys, 'http://127.0.0.1:8545');
+      provider: function() {
+        return new HDWalletProvider(privateKeys, "http://127.0.0.1:8545");
       },
-      network_id: 5777 // Any network (default: none)
+      network_id: 5777, // Any network (default: none)
     },
     rinkeby: {
-      provider: function () {
-        return new HDWalletProvider(privateKeys, `https://rinkeby.infura.io/v3/${process.env.INFURA_ID}`);
+      provider: function() {
+        return new HDWalletProvider(
+          privateKeys,
+          `https://rinkeby.infura.io/v3/${process.env.INFURA_ID}`
+        );
       },
       gas: 5000000,
       gasPrice: 24000000000,
       network_id: 4,
-      skipDryRun: true
+      skipDryRun: true,
     },
     bsc_testnet: {
-      provider: () => new HDWalletProvider(privateKeys, 'https://data-seed-prebsc-1-s1.binance.org:8545'),
+      provider: () =>
+        new HDWalletProvider(
+          privateKeys,
+          'https://data-seed-prebsc-1-s2.binance.org:8545'
+        ),
       network_id: 97,
       confirmations: 10,
-      timeoutBlocks: 200
+      timeoutBlocks: 200,
+      // gas: 5000000,
+      gasPrice: 10e9,
+      skipDryRun: true,
+      // networkCheckTimeout: 90000,
+      // Resolve time out error
+      // https://github.com/trufflesuite/truffle/issues/3356#issuecomment-721352724
     },
     bsc: {
-      provider: () => new HDWalletProvider(privateKeys, 'https://bsc-dataseed1.binance.org'),
+      provider: () =>
+        new HDWalletProvider(privateKeys, "https://bsc-dataseed1.binance.org"),
       network_id: 56,
       confirmations: 10,
       timeoutBlocks: 200,
-      gas: 10000000
+      gas: 10000000,
     },
     // Useful for testing. The `development` name is special - truffle uses it by default
     // if it's defined here and no other network is specified at the command line.
@@ -82,10 +99,10 @@ module.exports = {
     // options below to some value.
     //
     ganache: {
-      host: '127.0.0.1', // Localhost (default: none)
+      host: "127.0.0.1", // Localhost (default: none)
       port: 7545, // Standard Ethereum port (default: none)
-      network_id: 5777 // Any network (default: none)
-    }
+      network_id: 5777, // Any network (default: none)
+    },
     // Another network with more advanced options...
     // advanced: {
     // port: 8777,             // Custom port
@@ -115,28 +132,25 @@ module.exports = {
 
   // Set default mocha options here, use special reporters etc.
   mocha: {
-    timeout: 100000
+    timeout: 100000,
   },
 
   // Configure your compilers
   compilers: {
     solc: {
-      version: '0.6.8' // Fetch exact version from solc-bin (default: truffle's version)
-      // // docker: true,        // Use "0.5.1" you've installed locally with docker (default: false)
-      // settings: { // See the solidity docs for advice about optimization and evmVersion
-      //   optimizer: {
-      //     enabled: false,
-      //     runs: 200
-      //   },
-      //   evmVersion: 'constantinople'
-      // }
-    }
+      version: "0.6.8", // Fetch exact version from solc-bin (default: truffle's version)
+      // docker: false,        // Use "0.5.1" you've installed locally with docker (default: false)
+      settings: { // See the solidity docs for advice about optimization and evmVersion
+        optimizer: {
+          enabled: false,
+          runs: 200
+        }
+        // evmVersion: 'constantinople'
+      }
+    },
   },
-  plugins: [
-    'truffle-plugin-verify',
-    'solidity-coverage'
-  ],
+  plugins: ["truffle-plugin-verify", "solidity-coverage"],
   api_keys: {
-    etherscan: process.env.ETHERSCAN_KEY
-  }
+    bscscan: process.env.ETHERSCAN_KEY,
+  },
 };

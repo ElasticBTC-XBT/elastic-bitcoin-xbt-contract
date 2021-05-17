@@ -438,8 +438,10 @@ package-lock.json
 yarn.lock
 truffle-config.js
 .vscode/
-.openzeppelin/
+.openzeppelin/dev*.json
 build/
 artifacts/
 cache/
 migrations/*.migration.js
+
+contracts/flatten-contracts/

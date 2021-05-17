@@ -1,0 +1,24 @@
+{
+  "manifestVersion": "2.2",
+  "contracts": {
+    "XBN": "XBN"
+  },
+  "dependencies": {},
+  "name": "xbn",
+  "version": "1.2.0",
+  "compiler": {
+    "compilerSettings": {
+      "optimizer": {
+        "enabled": false,
+        "runs": "200"
+      }
+    },
+    "typechain": {
+      "enabled": false
+    },
+    "manager": "truffle",
+    "artifactsDir": "build/contracts",
+    "contractsDir": "contracts"
+  },
+  "telemetryOptIn": false
+}
