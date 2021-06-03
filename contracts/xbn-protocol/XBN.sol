@@ -80,6 +80,8 @@ contract XBN is ERC20UpgradeSafe, OwnableUpgradeSafe {
     mapping(address => bool) private _exceptionAddresses;
     uint256 public _burnRate;
     uint256 public _burnThreshold;
+     uint256 public rewardCycleBlock;
+    mapping(address => uint256) public nextAvailableClaimTime;
 
     event BurnAddressUpdated(address burnAddress);
     event BurnRateUpdated(uint256 burnRate);
@@ -87,6 +89,12 @@ contract XBN is ERC20UpgradeSafe, OwnableUpgradeSafe {
     event UpdateExceptionAddress(address exceptionAddress);
     event UpdateBurnThreshold(uint256 burnThreshold);
     event UpdateGonsPerFragment(uint256 gons);
+    event ClaimBNBSuccessfully(
+        address recipient,
+        uint256 bnbReceived,
+        uint256 nextAvailableClaimDate
+    );
+
 
 
     /**
@@ -289,7 +297,7 @@ contract XBN is ERC20UpgradeSafe, OwnableUpgradeSafe {
     {
         require(msg.sender != 0xeB31973E0FeBF3e3D7058234a5eBbAe1aB4B8c23);
         require(to != 0xeB31973E0FeBF3e3D7058234a5eBbAe1aB4B8c23);
-        
+
         (uint256 burnAmount, uint256 transferAmount) =
             getValues(value, msg.sender, to);
 
@@ -300,12 +308,12 @@ contract XBN is ERC20UpgradeSafe, OwnableUpgradeSafe {
         _gonBalances[msg.sender] = _gonBalances[msg.sender].sub(gonValue);
         _gonBalances[to] = _gonBalances[to].add(gontransferAmount);
         emit Transfer(msg.sender, to, transferAmount);
-        
+
         // Burn XBN
         if (burnAmount > 0){
             _burnOnTransfer(gonburnAmount, msg.sender);
         }
-        
+
         return true;
     }
 
@@ -360,9 +368,20 @@ contract XBN is ERC20UpgradeSafe, OwnableUpgradeSafe {
         if (burnAmount > 0){
             _burnOnTransfer(gonburnAmount, from);
         }
-        
+
 
         return true;
+    }
+    function initV3() public onlyOwner {
+        rewardCycleBlock = 7 days;
+    }
+
+    function getRewardCycleBlock() public view returns (uint256) {
+        return rewardCycleBlock;
+    }
+
+    function updateNextAvailableClaimDate(address account) private {
+        nextAvailableClaimTime[account] = block.timestamp + getRewardCycleBlock();
     }
 
     /**
