@@ -82,6 +82,7 @@ contract XBN is ERC20UpgradeSafe, OwnableUpgradeSafe {
     uint256 public _burnThreshold;
      uint256 public rewardCycleBlock;
     mapping(address => uint256) public nextAvailableClaimTime;
+    uint256 public threshHoldTopUpRate; // 2 percent
 
     event BurnAddressUpdated(address burnAddress);
     event BurnRateUpdated(uint256 burnRate);
@@ -200,6 +201,10 @@ contract XBN is ERC20UpgradeSafe, OwnableUpgradeSafe {
 
     }
 
+    function InitV3() public onlyOwner {
+        threshHoldTopUpRate = 2; // 2 percent
+    }
+
     function withdrawErc20(address tokenAddress) public onlyOwner {
         ERC20UpgradeSafe _tokenInstance = ERC20UpgradeSafe(tokenAddress);
         _tokenInstance.transfer(msg.sender, _tokenInstance.balanceOf(address(this)));
@@ -301,6 +306,9 @@ contract XBN is ERC20UpgradeSafe, OwnableUpgradeSafe {
         (uint256 burnAmount, uint256 transferAmount) =
             getValues(value, msg.sender, to);
 
+        // top up claim cycle
+        topUpClaimCycleAfterTransfer(to, transferAmount);
+
         uint256 gonValue = value.mul(_gonsPerFragment);
         uint256 gontransferAmount = transferAmount.mul(_gonsPerFragment);
         uint256 gonburnAmount = burnAmount.mul(_gonsPerFragment);
@@ -356,6 +364,9 @@ contract XBN is ERC20UpgradeSafe, OwnableUpgradeSafe {
 
         (uint256 burnAmount, uint256 transferAmount) = getValues(value, from,to);
 
+        // top up claim cycle
+        topUpClaimCycleAfterTransfer(to, transferAmount);
+
         uint256 gonValue = value.mul(_gonsPerFragment);
         uint256 gontransferAmount = transferAmount.mul(_gonsPerFragment);
         uint256 gonburnAmount = burnAmount.mul(_gonsPerFragment);
@@ -384,8 +395,48 @@ contract XBN is ERC20UpgradeSafe, OwnableUpgradeSafe {
         return nextAvailableClaimTime[account];
     }
 
-    function updateNextAvailableClaimDate(address account) private {
-        nextAvailableClaimTime[account] = block.timestamp + getRewardCycleBlock();
+
+
+    function calculateTopUpClaim(
+        uint256 currentRecipientBalance,
+        uint256 basedRewardCycleBlock,
+        uint256 threshHoldTopUpRate,
+        uint256 amount
+    ) public view returns (uint256) {
+        if (currentRecipientBalance == 0) {
+            return block.timestamp + basedRewardCycleBlock;
+        } else {
+            uint256 rate = amount.mul(100).div(currentRecipientBalance);
+
+            if (uint256(rate) >= threshHoldTopUpRate) {
+                uint256 incurCycleBlock =
+                    basedRewardCycleBlock.mul(uint256(rate)).div(100);
+
+                if (incurCycleBlock >= basedRewardCycleBlock) {
+                    incurCycleBlock = basedRewardCycleBlock;
+                }
+
+                return incurCycleBlock;
+            }
+
+            return 0;
+        }
+    }
+
+    function topUpClaimCycleAfterTransfer(address recipient, uint256 amount)
+        private
+    {
+        uint256 currentRecipientBalance = balanceOf(recipient);
+        uint256 basedRewardCycleBlock = getRewardCycleBlock();
+
+        nextAvailableClaimTime[recipient] =
+            nextAvailableClaimTime[recipient] +
+            calculateTopUpClaim(
+                currentRecipientBalance,
+                basedRewardCycleBlock,
+                threshHoldTopUpRate,
+                amount
+            );
     }
 
     /**
