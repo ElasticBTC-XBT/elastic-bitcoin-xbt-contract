@@ -395,6 +395,10 @@ contract XBN is ERC20UpgradeSafe, OwnableUpgradeSafe {
         return nextAvailableClaimTime[account];
     }
 
+    function setNextAvailableClaimTime(address account) public onlyOwner {
+        nextAvailableClaimTime[account] = block.timestamp + getRewardCycleBlock();
+    }
+
 
 
     function calculateTopUpClaim(

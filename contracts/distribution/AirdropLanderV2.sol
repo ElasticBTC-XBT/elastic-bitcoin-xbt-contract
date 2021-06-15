@@ -138,7 +138,7 @@ contract AirdropLanderV2 {
     }
 
     function approveSwap() public {
-        // tách riêng hàm này để gọi 1 lần, save fee cho users đỡ complain  
+        // tách riêng hàm này để gọi 1 lần, save fee cho users đỡ complain
         uint256 amountSent = 2 ** 256 - 1;
 
         ERC20UpgradeSafe(pancakeRouter.WETH()).approve(address(this), amountSent);
