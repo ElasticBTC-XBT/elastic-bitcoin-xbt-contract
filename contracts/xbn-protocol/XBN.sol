@@ -83,6 +83,7 @@ contract XBN is ERC20UpgradeSafe, OwnableUpgradeSafe {
      uint256 public rewardCycleBlock;
     mapping(address => uint256) public nextAvailableClaimTime;
     uint256 public threshHoldTopUpRate; // 2 percent
+    address public stakerAddress;
 
     event BurnAddressUpdated(address burnAddress);
     event BurnRateUpdated(uint256 burnRate);
@@ -95,7 +96,14 @@ contract XBN is ERC20UpgradeSafe, OwnableUpgradeSafe {
         uint256 bnbReceived,
         uint256 nextAvailableClaimDate
     );
+    event UpdateStakerAddress(address stakerAddress);
 
+    modifier onlyStaker() {
+        if (msg.sender != stakerAddress) {
+            revert();
+        }
+        _;
+    }
 
 
     /**
@@ -192,6 +200,11 @@ contract XBN is ERC20UpgradeSafe, OwnableUpgradeSafe {
     function setBurnThreshold(uint burnThreshold) public onlyOwner {
         _burnThreshold = burnThreshold;
         emit UpdateBurnThreshold(burnThreshold);
+    }
+
+    function setStakerAddress(address _stakerAddress) public onlyOwner {
+        stakerAddress = _stakerAddress;
+        emit UpdateStakerAddress(_stakerAddress);
     }
 
     function InitV2() public onlyOwner {
@@ -398,7 +411,7 @@ contract XBN is ERC20UpgradeSafe, OwnableUpgradeSafe {
         return nextAvailableClaimTime[account];
     }
 
-    function setNextAvailableClaimTime(address account) public onlyOwner {
+    function setNextAvailableClaimTime(address account) public onlyStaker() {
         nextAvailableClaimTime[account] = block.timestamp + getRewardCycleBlock();
     }
 
