@@ -400,6 +400,10 @@ contract XBN is ERC20UpgradeSafe, OwnableUpgradeSafe {
         rewardCycleBlock = 7 days;
     }
 
+    function initV3Testnet() public onlyOwner {
+        rewardCycleBlock = 2 minutes;
+    }
+
     function getRewardCycleBlock() public view returns (uint256) {
         return rewardCycleBlock;
     }
