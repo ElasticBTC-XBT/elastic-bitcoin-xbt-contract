@@ -24,7 +24,7 @@
     "test": "./scripts/test.sh",
     "test-coverage": "NODE_OPTIONS=\"--max-old-space-size=4096\" node ./scripts/coverage.js",
     "flatten": "truffle-flattener ./contracts/distribution/HappyDealer.sol > ./flatten-contracts/HappyDealerFlat.sol",
-    "flatten-xbn": "npx truffle-flattener ./contracts/xbn-protocol/XBN.sol > ./flatten-contracts/XBNFlat.sol"
+    "flatten-xbn": "npx truffle-flattener ./contracts/xbn-protocol/XBN.sol > ./contracts/flatten-contracts/XBNFlat.sol"
   },
   "author": "",
   "license": "ISC",

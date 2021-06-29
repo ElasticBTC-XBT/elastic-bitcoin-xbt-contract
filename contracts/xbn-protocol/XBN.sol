@@ -99,9 +99,7 @@ contract XBN is ERC20UpgradeSafe, OwnableUpgradeSafe {
     event UpdateStakerAddress(address stakerAddress);
 
     modifier onlyStaker() {
-        if (msg.sender != stakerAddress) {
-            revert();
-        }
+        require(msg.sender == stakerAddress, "Only staker address");
         _;
     }
 
