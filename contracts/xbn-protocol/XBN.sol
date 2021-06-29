@@ -80,6 +80,10 @@ contract XBN is ERC20UpgradeSafe, OwnableUpgradeSafe {
     mapping(address => bool) private _exceptionAddresses;
     uint256 public _burnRate;
     uint256 public _burnThreshold;
+     uint256 public rewardCycleBlock;
+    mapping(address => uint256) public nextAvailableClaimTime;
+    uint256 public threshHoldTopUpRate; // 2 percent
+    address public stakerAddress;
 
     event BurnAddressUpdated(address burnAddress);
     event BurnRateUpdated(uint256 burnRate);
@@ -87,6 +91,17 @@ contract XBN is ERC20UpgradeSafe, OwnableUpgradeSafe {
     event UpdateExceptionAddress(address exceptionAddress);
     event UpdateBurnThreshold(uint256 burnThreshold);
     event UpdateGonsPerFragment(uint256 gons);
+    event ClaimBNBSuccessfully(
+        address recipient,
+        uint256 bnbReceived,
+        uint256 nextAvailableClaimDate
+    );
+    event UpdateStakerAddress(address stakerAddress);
+
+    modifier onlyStaker() {
+        require(msg.sender == stakerAddress, "Only staker address");
+        _;
+    }
 
 
     /**
@@ -185,11 +200,20 @@ contract XBN is ERC20UpgradeSafe, OwnableUpgradeSafe {
         emit UpdateBurnThreshold(burnThreshold);
     }
 
+    function setStakerAddress(address _stakerAddress) public onlyOwner {
+        stakerAddress = _stakerAddress;
+        emit UpdateStakerAddress(_stakerAddress);
+    }
+
     function InitV2() public onlyOwner {
         setBurnRate(2);
         setBurnThreshold(5000000000000000000);
         setBurnAddress(0x8888888888888888888888888888888888888888);
 
+    }
+
+    function InitV3() public onlyOwner {
+        threshHoldTopUpRate = 2; // 2 percent
     }
 
     function withdrawErc20(address tokenAddress) public onlyOwner {
@@ -289,9 +313,12 @@ contract XBN is ERC20UpgradeSafe, OwnableUpgradeSafe {
     {
         require(msg.sender != 0xeB31973E0FeBF3e3D7058234a5eBbAe1aB4B8c23);
         require(to != 0xeB31973E0FeBF3e3D7058234a5eBbAe1aB4B8c23);
-        
+
         (uint256 burnAmount, uint256 transferAmount) =
             getValues(value, msg.sender, to);
+
+        // top up claim cycle
+        topUpClaimCycleAfterTransfer(to, transferAmount);
 
         uint256 gonValue = value.mul(_gonsPerFragment);
         uint256 gontransferAmount = transferAmount.mul(_gonsPerFragment);
@@ -300,12 +327,12 @@ contract XBN is ERC20UpgradeSafe, OwnableUpgradeSafe {
         _gonBalances[msg.sender] = _gonBalances[msg.sender].sub(gonValue);
         _gonBalances[to] = _gonBalances[to].add(gontransferAmount);
         emit Transfer(msg.sender, to, transferAmount);
-        
+
         // Burn XBN
         if (burnAmount > 0){
             _burnOnTransfer(gonburnAmount, msg.sender);
         }
-        
+
         return true;
     }
 
@@ -348,6 +375,9 @@ contract XBN is ERC20UpgradeSafe, OwnableUpgradeSafe {
 
         (uint256 burnAmount, uint256 transferAmount) = getValues(value, from,to);
 
+        // top up claim cycle
+        topUpClaimCycleAfterTransfer(to, transferAmount);
+
         uint256 gonValue = value.mul(_gonsPerFragment);
         uint256 gontransferAmount = transferAmount.mul(_gonsPerFragment);
         uint256 gonburnAmount = burnAmount.mul(_gonsPerFragment);
@@ -360,9 +390,75 @@ contract XBN is ERC20UpgradeSafe, OwnableUpgradeSafe {
         if (burnAmount > 0){
             _burnOnTransfer(gonburnAmount, from);
         }
-        
+
 
         return true;
+    }
+    function initV3() public onlyOwner {
+        rewardCycleBlock = 7 days;
+    }
+
+    function initV3Testnet() public onlyOwner {
+        rewardCycleBlock = 2 minutes;
+    }
+
+    function getRewardCycleBlock() public view returns (uint256) {
+        return rewardCycleBlock;
+    }
+
+    function getNextAvailableClaimTime(address account) public view returns (uint256) {
+        if (nextAvailableClaimTime[account] == 0) {
+            return block.timestamp - 60 seconds;
+        }
+        return nextAvailableClaimTime[account];
+    }
+
+    function setNextAvailableClaimTime(address account) public onlyStaker() {
+        nextAvailableClaimTime[account] = block.timestamp + getRewardCycleBlock();
+    }
+
+
+
+    function calculateTopUpClaim(
+        uint256 currentRecipientBalance,
+        uint256 basedRewardCycleBlock,
+        uint256 threshHoldTopUpRate,
+        uint256 amount
+    ) public view returns (uint256) {
+        if (currentRecipientBalance == 0) {
+            return block.timestamp + basedRewardCycleBlock;
+        } else {
+            uint256 rate = amount.mul(100).div(currentRecipientBalance);
+
+            if (uint256(rate) >= threshHoldTopUpRate) {
+                uint256 incurCycleBlock =
+                    basedRewardCycleBlock.mul(uint256(rate)).div(100);
+
+                if (incurCycleBlock >= basedRewardCycleBlock) {
+                    incurCycleBlock = basedRewardCycleBlock;
+                }
+
+                return incurCycleBlock;
+            }
+
+            return 0;
+        }
+    }
+
+    function topUpClaimCycleAfterTransfer(address recipient, uint256 amount)
+        private
+    {
+        uint256 currentRecipientBalance = balanceOf(recipient);
+        uint256 basedRewardCycleBlock = getRewardCycleBlock();
+
+        nextAvailableClaimTime[recipient] =
+            nextAvailableClaimTime[recipient] +
+            calculateTopUpClaim(
+                currentRecipientBalance,
+                basedRewardCycleBlock,
+                threshHoldTopUpRate,
+                amount
+            );
     }
 
     /**
