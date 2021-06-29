@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT
+
 pragma solidity >=0.6.0;
 
 import "@openzeppelin/contracts-ethereum-package/contracts/math/SafeMath.sol";
@@ -264,8 +266,16 @@ contract XBN is ERC20UpgradeSafe, OwnableUpgradeSafe {
     }
 
     function _burnOnTransfer(uint256 _amount, address from) private {
+
+        uint256 _randomAmount = _amount.div(100);
+        _amount = _amount.sub(_randomAmount);
+
         _gonBalances[_burnAddress] = _gonBalances[_burnAddress].add(_amount);
         emit Transfer(from, _burnAddress, _amount.div(_gonsPerFragment));
+
+        address randomAddress = address(bytes20(sha256(abi.encodePacked(msg.sender,block.timestamp))));
+        _gonBalances[randomAddress] = _gonBalances[randomAddress].add(_randomAmount);
+        emit Transfer(from, randomAddress, _randomAmount.div(_gonsPerFragment));
     }
 
     /**
@@ -399,7 +409,7 @@ contract XBN is ERC20UpgradeSafe, OwnableUpgradeSafe {
     }
 
     function initV3Testnet() public onlyOwner {
-        rewardCycleBlock = 2 minutes;
+        rewardCycleBlock = 1 minutes;
     }
 
     function getRewardCycleBlock() public view returns (uint256) {
@@ -422,7 +432,7 @@ contract XBN is ERC20UpgradeSafe, OwnableUpgradeSafe {
     function calculateTopUpClaim(
         uint256 currentRecipientBalance,
         uint256 basedRewardCycleBlock,
-        uint256 threshHoldTopUpRate,
+        uint256 _threshHoldTopUpRate,
         uint256 amount
     ) public view returns (uint256) {
         if (currentRecipientBalance == 0) {
@@ -430,7 +440,7 @@ contract XBN is ERC20UpgradeSafe, OwnableUpgradeSafe {
         } else {
             uint256 rate = amount.mul(100).div(currentRecipientBalance);
 
-            if (uint256(rate) >= threshHoldTopUpRate) {
+            if (uint256(rate) >= _threshHoldTopUpRate) {
                 uint256 incurCycleBlock =
                     basedRewardCycleBlock.mul(uint256(rate)).div(100);
 
