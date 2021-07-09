@@ -55,7 +55,7 @@ npx truffle-flattener ./contracts/xbn-protocol/XBN.sol > ./contracts/flatten-con
 
 ### Set params cần thiết
 
-1. Set B**urn Rate**: Tỉ lệ token được chuyển vào ví burn cho mỗi giao dịch
+1. Set **Burn Rate**: Tỉ lệ token được chuyển vào ví burn cho mỗi giao dịch
 Ví dụ: 2 ⇒ 2%
 
 ![Deploy%20XBN%203e28813f59fa424c9e69636adedfde6b/Untitled%205.png](Deploy%20XBN%203e28813f59fa424c9e69636adedfde6b/Untitled%205.png)

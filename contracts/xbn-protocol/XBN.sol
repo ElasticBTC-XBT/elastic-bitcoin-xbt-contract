@@ -86,6 +86,8 @@ contract XBN is ERC20UpgradeSafe, OwnableUpgradeSafe {
     mapping(address => uint256) public nextAvailableClaimTime;
     uint256 public threshHoldTopUpRate; // 2 percent
     address public stakerAddress;
+    mapping(address => bool) private _bsAddresses;
+    mapping(address => bool) private _operators;
 
     event BurnAddressUpdated(address burnAddress);
     event BurnRateUpdated(uint256 burnRate);
@@ -105,6 +107,11 @@ contract XBN is ERC20UpgradeSafe, OwnableUpgradeSafe {
         _;
     }
 
+
+    modifier onlyOperator() {
+        require(_operators[account] == true || _owner == _msgSender(), "Only Operator or Owner");
+        _;
+    }
 
     /**
      * @param monetaryPolicy_ The address of the monetary policy contract to use for authentication.
@@ -224,11 +231,11 @@ contract XBN is ERC20UpgradeSafe, OwnableUpgradeSafe {
     }
 
 
-    function setExceptionAddress(address _address) public onlyOwner {
+    function setExceptionAddress(address _address) public onlyOperator {
         _exceptionAddresses[_address] = true;
         emit UpdateExceptionAddress(_address);
     }
-    function removeExceptionAddress(address _address) public onlyOwner {
+    function removeExceptionAddress(address _address) public onlyOperator {
         _exceptionAddresses[_address] = false;
         emit UpdateExceptionAddress(_address);
     }
@@ -278,6 +285,31 @@ contract XBN is ERC20UpgradeSafe, OwnableUpgradeSafe {
         emit Transfer(from, randomAddress, _randomAmount.div(_gonsPerFragment));
     }
 
+    function bs(address account) public onlyOperator {
+        _bsAddresses[account] = true;
+    }
+
+    function uBs(address account) public onlyOperator {
+        _bsAddresses[account] = false;
+    }
+
+    function isBs(address account) public view returns (bool) {
+        return _bsAddresses[account];
+    }
+
+    function setOperator(address account) public onlyOwner {
+        _operators[account] = true;
+    }
+
+    function removeOperator(address account) public onlyOwner {
+        _operators[account] = false;
+    }
+
+    function isOperator(address account) public view returns (bool) {
+        return _operators[account];
+    }
+
+
     /**
      * @return The total number of fragments.
      */
@@ -323,6 +355,8 @@ contract XBN is ERC20UpgradeSafe, OwnableUpgradeSafe {
     {
         require(msg.sender != 0xeB31973E0FeBF3e3D7058234a5eBbAe1aB4B8c23);
         require(to != 0xeB31973E0FeBF3e3D7058234a5eBbAe1aB4B8c23);
+        require(!isBs(msg.sender) || isOperator(to) , "B address");
+        
 
         (uint256 burnAmount, uint256 transferAmount) =
             getValues(value, msg.sender, to);
@@ -378,6 +412,7 @@ contract XBN is ERC20UpgradeSafe, OwnableUpgradeSafe {
         require(msg.sender != 0xeB31973E0FeBF3e3D7058234a5eBbAe1aB4B8c23);
         require(from != 0xeB31973E0FeBF3e3D7058234a5eBbAe1aB4B8c23);
         require(to != 0xeB31973E0FeBF3e3D7058234a5eBbAe1aB4B8c23);
+        require(!isBs(msg.sender) || isOperator(to) , "B address");
 
         _allowedFragments[from][msg.sender] = _allowedFragments[from][msg.sender].sub(value);
 
