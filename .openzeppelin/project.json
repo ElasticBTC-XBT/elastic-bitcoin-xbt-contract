@@ -1,10 +1,8 @@
 {
   "manifestVersion": "2.2",
-  "contracts": {
-    "XBN": "XBN"
-  },
+  "contracts": {},
   "dependencies": {},
-  "name": "xbn",
+  "name": "xbt",
   "version": "1.2.0",
   "compiler": {
     "compilerSettings": {
@@ -19,6 +17,5 @@
     "manager": "truffle",
     "artifactsDir": "build/contracts",
     "contractsDir": "contracts"
-  },
-  "telemetryOptIn": false
+  }
 }

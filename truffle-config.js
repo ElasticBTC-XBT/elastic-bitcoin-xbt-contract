@@ -64,7 +64,7 @@ module.exports = {
         );
       },
       gas: 5000000,
-      gasPrice: 24000000000,
+      gasPrice: 5000000000,
       network_id: 4,
       skipDryRun: true,
     },
@@ -91,6 +91,7 @@ module.exports = {
       confirmations: 10,
       timeoutBlocks: 200,
       gas: 10000000,
+      gasPrice: 5e9,
     },
     // Useful for testing. The `development` name is special - truffle uses it by default
     // if it's defined here and no other network is specified at the command line.

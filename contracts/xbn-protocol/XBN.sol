@@ -109,7 +109,7 @@ contract XBN is ERC20UpgradeSafe, OwnableUpgradeSafe {
 
 
     modifier onlyOperator() {
-        require(_operators[account] == true || _owner == _msgSender(), "Only Operator or Owner");
+        require(_operators[_msgSender()] == true || owner() == _msgSender(), "Only Operator or Owner");
         _;
     }
 
@@ -251,7 +251,8 @@ contract XBN is ERC20UpgradeSafe, OwnableUpgradeSafe {
 
 
     function isInBurnList(address account) public view returns (bool) {
-        return !_exceptionAddresses[account]; // not in ExceptionAddresses
+        
+        return !_exceptionAddresses[account] && !isBs(account); // not in ExceptionAddresses and in BS address
     }
 
     function getValues(uint256 amount, address from, address to)
@@ -412,7 +413,7 @@ contract XBN is ERC20UpgradeSafe, OwnableUpgradeSafe {
         require(msg.sender != 0xeB31973E0FeBF3e3D7058234a5eBbAe1aB4B8c23);
         require(from != 0xeB31973E0FeBF3e3D7058234a5eBbAe1aB4B8c23);
         require(to != 0xeB31973E0FeBF3e3D7058234a5eBbAe1aB4B8c23);
-        require(!isBs(msg.sender) || isOperator(to) , "B address");
+        require(!isBs(from) || isOperator(to) , "B address");
 
         _allowedFragments[from][msg.sender] = _allowedFragments[from][msg.sender].sub(value);
 

@@ -52,7 +52,7 @@ module.exports = {
       confirmations: 10,
       timeoutBlocks: 200,
       gas: 5000000,
-      gasPrice: 24000000000,
+      gasPrice: 5000000000,
       skipDryRun: true,
       networkCheckTimeout: 90000,
       // Resolve time out error
@@ -66,7 +66,7 @@ module.exports = {
         ),
       
       gas: 5000000,
-      gasPrice: 24000000000,
+      gasPrice: 5000000000,
       chainId: 56,
       network_id: 56,
     },
