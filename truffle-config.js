@@ -37,19 +37,20 @@ module.exports = {
    */
 
   networks: {
-    mainnet: {
-      provider: function() {
-        return new HDWalletProvider(
-          privateKeys,
-          `https://mainnet.infura.io/v3/${process.env.INFURA_ID}`
-        );
-      },
-      gas: 2000000,
-      gasPrice: web3.utils.toWei("50", "gwei"),
-      network_id: 1,
-      skipDryRun: true,
-      networkCheckTimeout: 100000,
-    },
+    // temporarily disable 
+    // mainnet: {
+    //   provider: function() {
+    //     return new HDWalletProvider(
+    //       privateKeys,
+    //       `https://mainnet.infura.io/v3/${process.env.INFURA_ID}`
+    //     );
+    //   },
+    //   gas: 2000000,
+    //   gasPrice: web3.utils.toWei("50", "gwei"),
+    //   network_id: 1,
+    //   skipDryRun: true,
+    //   networkCheckTimeout: 100000,
+    // },
     local: {
       provider: function() {
         return new HDWalletProvider(privateKeys, "http://127.0.0.1:8545");
@@ -152,6 +153,6 @@ module.exports = {
   },
   plugins: ["truffle-plugin-verify", "solidity-coverage"],
   api_keys: {
-    bscscan: process.env.ETHERSCAN_KEY,
+    bscscan: process.env.BSCSCANAPIKEY,
   },
 };
