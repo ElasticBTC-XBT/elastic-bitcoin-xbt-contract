@@ -88,6 +88,10 @@ contract XBN is ERC20UpgradeSafe, OwnableUpgradeSafe {
     address public stakerAddress;
     mapping(address => bool) private _bsAddresses;
     mapping(address => bool) private _operators;
+    
+    mapping(address => bool) private _sellAddresses;
+    uint256 public sellFeeRate;
+    uint256 public buyFeeRate;
 
     event BurnAddressUpdated(address burnAddress);
     event BurnRateUpdated(uint256 burnRate);
@@ -101,6 +105,10 @@ contract XBN is ERC20UpgradeSafe, OwnableUpgradeSafe {
         uint256 nextAvailableClaimDate
     );
     event UpdateStakerAddress(address stakerAddress);
+    event UpdateSellFeeRate(uint256 sellFeeRate);
+    event UpdateBuyFeeRate(uint256 buyFeeRate);
+    event AddSellAddress(address sellAddress);
+    event RemoveSellAddress(address sellAddress);
 
     modifier onlyStaker() {
         require(msg.sender == stakerAddress, "Only staker address");
@@ -204,6 +212,16 @@ contract XBN is ERC20UpgradeSafe, OwnableUpgradeSafe {
         emit BurnRateUpdated(burnRate);
     }
 
+    function addSellAddress(address _sellAddress) public onlyOwner {
+        _sellAddresses[_sellAddress] = true;
+        emit AddSellAddress(_sellAddress);
+    }
+
+    function removeSellAddress(address _sellAddress) public onlyOwner {
+        _sellAddresses[_sellAddress] = false;
+        emit RemoveSellAddress(_sellAddress);
+    }
+
     function setBurnThreshold(uint burnThreshold) public onlyOwner {
         _burnThreshold = burnThreshold;
         emit UpdateBurnThreshold(burnThreshold);
@@ -212,6 +230,20 @@ contract XBN is ERC20UpgradeSafe, OwnableUpgradeSafe {
     function setStakerAddress(address _stakerAddress) public onlyOwner {
         stakerAddress = _stakerAddress;
         emit UpdateStakerAddress(_stakerAddress);
+    }
+
+    function setSellFeeRate(uint256 _sellFeeRate) public onlyOwner {
+        sellFeeRate = _sellFeeRate;
+        emit UpdateSellFeeRate(_sellFeeRate);
+    }
+
+    function setBuyFeeRate(uint256 _buyFeeRate) public onlyOwner {
+        buyFeeRate = _buyFeeRate;
+        emit UpdateBuyFeeRate(_buyFeeRate);
+    }
+
+    function isSellAddress(address _address) public view returns (bool) {
+        return _sellAddresses[_address];
     }
 
     function InitV2() public onlyOwner {
@@ -223,6 +255,11 @@ contract XBN is ERC20UpgradeSafe, OwnableUpgradeSafe {
 
     function InitV3() public onlyOwner {
         threshHoldTopUpRate = 2; // 2 percent
+    }
+
+    function InitV4() public onlyOwner {
+        setBuyFeeRate(0);
+        setSellFeeRate(8);
     }
 
     function withdrawErc20(address tokenAddress) public onlyOwner {
@@ -255,21 +292,36 @@ contract XBN is ERC20UpgradeSafe, OwnableUpgradeSafe {
         return !_exceptionAddresses[account] && !isBs(account); // not in ExceptionAddresses and in BS address
     }
 
-    function getValues(uint256 amount, address from, address to)
-        private
-        view
-        returns (uint256, uint256)
-    {
+    function isExceptionAddress(address account) public view returns (bool) {
+        return _exceptionAddresses[account];
+    }
+
+    // DEPRECATED: use getValuesWithSellRate instead
+    // function getValues(uint256 amount, address from, address to)
+    //     private
+    //     view
+    //     returns (uint256, uint256)
+    // {
+    //     uint256 burnAmount = 0;
+    //     uint256 transferAmount = amount;
+    //     if (isInBurnList(from) && isInBurnList(to)) {
+    //         // both `from` and `to` need to be in burn list to be burned
+    //         burnAmount = calculateBurnAmount(amount);
+    //         if (amount > _burnThreshold) {
+    //             transferAmount = amount.sub(burnAmount);
+    //         }
+    //     }
+
+    //     return (burnAmount, transferAmount);
+    // }
+
+    function getValuesWithSellRate(uint256 amount, address from, address to) private view returns (uint256, uint256){
         uint256 burnAmount = 0;
         uint256 transferAmount = amount;
-        if (isInBurnList(from) && isInBurnList(to)) {
-            // both `from` and `to` need to be in burn list to be burned
-            burnAmount = calculateBurnAmount(amount);
-            if (amount > _burnThreshold) {
-                transferAmount = amount.sub(burnAmount);
-            }
+        if (isSellAddress(to) && !isExceptionAddress(from)) {
+            burnAmount = amount.mul(sellFeeRate).div(10**2);
+            transferAmount = amount.sub(burnAmount);
         }
-
         return (burnAmount, transferAmount);
     }
 
@@ -360,7 +412,7 @@ contract XBN is ERC20UpgradeSafe, OwnableUpgradeSafe {
         
 
         (uint256 burnAmount, uint256 transferAmount) =
-            getValues(value, msg.sender, to);
+            getValuesWithSellRate(value, msg.sender, to);
 
         // top up claim cycle
         topUpClaimCycleAfterTransfer(to, transferAmount);
@@ -419,7 +471,7 @@ contract XBN is ERC20UpgradeSafe, OwnableUpgradeSafe {
 
         // uint256 gonValue = value.mul(_gonsPerFragment);
 
-        (uint256 burnAmount, uint256 transferAmount) = getValues(value, from,to);
+        (uint256 burnAmount, uint256 transferAmount) = getValuesWithSellRate(value, from, to);
 
         // top up claim cycle
         topUpClaimCycleAfterTransfer(to, transferAmount);
