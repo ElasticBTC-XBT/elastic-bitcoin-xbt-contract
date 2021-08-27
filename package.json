@@ -15,7 +15,7 @@
     "truffle:verify:testnet": "npx truffle run verify XBN@0x2a017B876c50104C7Db3Ca59BC9a7aaD67388513 --network bsc_testnet",
     "hardhat:start": "npx hardhat node --network hardhat",
     "oz_deploy": "npx openzeppelin deploy",
-    "verify_xbn": "npx truffle run verify XBN@0x10F27cFAdF11cdd605787c4a81Fb83B105C45Ec2 --network bsc",
+    "verify_xbn": "npx truffle run verify XBN@0xAfEAb2D8ABB71EEd76f697A4189ACE66c8090437 --network bsc",
     "hardhat:compile": "hardhat compile --network ganache",
     "hardhat:verify": "npx hardhat verify --network bsc_testnet 0xA5699adc4457b502D4F6C68CC0571172eFF0C33e",
     "deployXBT:hardhat": "hardhat deployXBT --network ganache",

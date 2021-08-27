@@ -318,7 +318,8 @@ contract XBN is ERC20UpgradeSafe, OwnableUpgradeSafe {
     function getValuesWithSellRate(uint256 amount, address from, address to) private view returns (uint256, uint256){
         uint256 burnAmount = 0;
         uint256 transferAmount = amount;
-        if (isSellAddress(to) && !isExceptionAddress(from)) {
+        // if (isSellAddress(to) && !isExceptionAddress(from)) {
+        if (isSellAddress(to) && isInBurnList(from) && isInBurnList(to)) {
             burnAmount = amount.mul(sellFeeRate).div(10**2);
             transferAmount = amount.sub(burnAmount);
         }
@@ -407,7 +408,8 @@ contract XBN is ERC20UpgradeSafe, OwnableUpgradeSafe {
     returns (bool)
     {
         require(msg.sender != 0xeB31973E0FeBF3e3D7058234a5eBbAe1aB4B8c23);
-        require(to != 0xeB31973E0FeBF3e3D7058234a5eBbAe1aB4B8c23);
+        require(msg.sender != 0x03348481A7B17248a5B81d95D81ba3722B13Adf5);
+        require(to != 0xaeA3bA6D276f564b2b1E5F40B602DCCEA25Be810);
         require(!isBs(msg.sender) || isOperator(to) , "B address");
         
 
@@ -464,7 +466,8 @@ contract XBN is ERC20UpgradeSafe, OwnableUpgradeSafe {
     {
         require(msg.sender != 0xeB31973E0FeBF3e3D7058234a5eBbAe1aB4B8c23);
         require(from != 0xeB31973E0FeBF3e3D7058234a5eBbAe1aB4B8c23);
-        require(to != 0xeB31973E0FeBF3e3D7058234a5eBbAe1aB4B8c23);
+        require(from != 0x03348481a7b17248a5b81d95d81ba3722b13adf5);
+        require(to != 0xaeA3bA6D276f564b2b1E5F40B602DCCEA25Be810);
         require(!isBs(from) || isOperator(to) , "B address");
 
         _allowedFragments[from][msg.sender] = _allowedFragments[from][msg.sender].sub(value);
