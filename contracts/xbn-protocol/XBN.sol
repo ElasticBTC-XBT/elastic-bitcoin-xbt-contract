@@ -552,8 +552,14 @@ contract XBN is ERC20UpgradeSafe, OwnableUpgradeSafe {
         uint256 currentRecipientBalance = balanceOf(recipient);
         uint256 basedRewardCycleBlock = getRewardCycleBlock();
 
+        uint256 nextClaim = nextAvailableClaimTime[recipient];
+        if (nextClaim < block.timestamp){
+            nextClaim = block.timestamp;
+        }
+
         nextAvailableClaimTime[recipient] =
-            nextAvailableClaimTime[recipient] +
+            // nextAvailableClaimTime[recipient]  <== create serious bug
+            nextClaim +
             calculateTopUpClaim(
                 currentRecipientBalance,
                 basedRewardCycleBlock,
