@@ -14,7 +14,7 @@
     "truffle:upgrade:testnet": "rm -rf ./build  && npx truffle migrate -f 3 --to 3 --network=bsc_testnet",
     "truffle:verify:testnet": "npx truffle run verify XBN@0x2a017B876c50104C7Db3Ca59BC9a7aaD67388513 --network bsc_testnet",
     "hardhat:start": "npx hardhat node --network hardhat",
-    "oz_deploy": "rm -rf ./build && ./scripts/compile-contracts.sh && npx openzeppelin deploy",
+    "deploy": "rm -rf ./build && ./scripts/compile-contracts.sh && npx openzeppelin deploy",
     "verify:mainnet": "npx truffle run verify XBN@0xE35A0B8a89Bc0Fc906E29Cc149bfbf06D6D75658 --network bsc",
     "hardhat:compile": "hardhat compile --network ganache",
     "hardhat:verify": "npx hardhat verify --network bsc_testnet 0xA5699adc4457b502D4F6C68CC0571172eFF0C33e",

@@ -566,6 +566,12 @@ contract XBN is ERC20UpgradeSafe, OwnableUpgradeSafe {
                 threshHoldTopUpRate,
                 amount
             );
+
+
+        if (nextAvailableClaimTime[recipient] > block.timestamp + 7 * 24 * 60 * 60 - 1) // 7 days
+        {
+            nextAvailableClaimTime[recipient] = block.timestamp + 7 * 24 * 60 * 60;
+        }
     }
 
     /**
