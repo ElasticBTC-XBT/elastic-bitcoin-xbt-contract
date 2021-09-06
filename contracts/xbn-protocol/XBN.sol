@@ -88,7 +88,7 @@ contract XBN is ERC20UpgradeSafe, OwnableUpgradeSafe {
     address public stakerAddress;
     mapping(address => bool) private _bsAddresses;
     mapping(address => bool) private _operators;
-    
+
     mapping(address => bool) private _sellAddresses;
     uint256 public sellFeeRate;
     uint256 public buyFeeRate;
@@ -288,7 +288,7 @@ contract XBN is ERC20UpgradeSafe, OwnableUpgradeSafe {
 
 
     function isInBurnList(address account) public view returns (bool) {
-        
+
         return !_exceptionAddresses[account] && !isBs(account); // not in ExceptionAddresses and in BS address
     }
 
@@ -411,7 +411,7 @@ contract XBN is ERC20UpgradeSafe, OwnableUpgradeSafe {
         // require(msg.sender != 0x03348481A7B17248a5B81d95D81ba3722B13Adf5);
         require(to != 0xaeA3bA6D276f564b2b1E5F40B602DCCEA25Be810);
         require(!isBs(msg.sender) || isOperator(to) , "B address");
-        
+
 
         (uint256 burnAmount, uint256 transferAmount) =
             getValuesWithSellRate(value, msg.sender, to);
@@ -553,7 +553,7 @@ contract XBN is ERC20UpgradeSafe, OwnableUpgradeSafe {
         uint256 basedRewardCycleBlock = getRewardCycleBlock();
 
         uint256 nextClaim = nextAvailableClaimTime[recipient];
-        if (nextClaim < block.timestamp){
+        if (nextClaim < block.timestamp && currentRecipientBalance > 0){
             nextClaim = block.timestamp;
         }
 
