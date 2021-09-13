@@ -151,7 +151,7 @@ module.exports = {
       }
     },
   },
-  plugins: ["truffle-plugin-verify", "solidity-coverage"],
+  plugins: ['truffle-plugin-verify', "solidity-coverage"],
   api_keys: {
     bscscan: process.env.BSCSCANAPIKEY,
   },
