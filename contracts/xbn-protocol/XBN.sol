@@ -132,47 +132,47 @@ contract XBN is ERC20UpgradeSafe, OwnableUpgradeSafe {
         emit LogMonetaryPolicyUpdated(monetaryPolicy_);
     }
 
-    /**
-     * @dev Notifies Fragments contract about a new rebase cycle.
-     * @param supplyDelta The number of new fragment tokens to add into circulation via expansion.
-     * @return The total number of fragments after the supply adjustment.
-     */
-    function rebase(uint256 epoch, int256 supplyDelta)
-    external
-    onlyMonetaryPolicy
-    returns (uint256)
-    {
-        if (supplyDelta == 0) {
-            emit LogRebase(epoch, _totalSupply);
-            return _totalSupply;
-        }
+    // /**
+    //  * @dev Notifies Fragments contract about a new rebase cycle.
+    //  * @param supplyDelta The number of new fragment tokens to add into circulation via expansion.
+    //  * @return The total number of fragments after the supply adjustment.
+    //  */
+    // function rebase(uint256 epoch, int256 supplyDelta)
+    // external
+    // onlyMonetaryPolicy
+    // returns (uint256)
+    // {
+    //     if (supplyDelta == 0) {
+    //         emit LogRebase(epoch, _totalSupply);
+    //         return _totalSupply;
+    //     }
 
-        if (supplyDelta < 0) {
-            _totalSupply = _totalSupply.sub(uint256(supplyDelta.abs()));
-        } else {
-            _totalSupply = _totalSupply.add(uint256(supplyDelta));
-        }
+    //     if (supplyDelta < 0) {
+    //         _totalSupply = _totalSupply.sub(uint256(supplyDelta.abs()));
+    //     } else {
+    //         _totalSupply = _totalSupply.add(uint256(supplyDelta));
+    //     }
 
-        if (_totalSupply > MAX_SUPPLY) {
-            _totalSupply = MAX_SUPPLY;
-        }
+    //     if (_totalSupply > MAX_SUPPLY) {
+    //         _totalSupply = MAX_SUPPLY;
+    //     }
 
-        _gonsPerFragment = TOTAL_GONS.div(_totalSupply);
+    //     _gonsPerFragment = TOTAL_GONS.div(_totalSupply);
 
-        // From this point forward, _gonsPerFragment is taken as the source of truth.
-        // We recalculate a new _totalSupply to be in agreement with the _gonsPerFragment
-        // conversion rate.
-        // This means our applied supplyDelta can deviate from the requested supplyDelta,
-        // but this deviation is guaranteed to be < (_totalSupply^2)/(TOTAL_GONS - _totalSupply).
-        //
-        // In the case of _totalSupply <= MAX_UINT128 (our current supply cap), this
-        // deviation is guaranteed to be < 1, so we can omit this step. If the supply cap is
-        // ever increased, it must be re-included.
-        // _totalSupply = TOTAL_GONS.div(_gonsPerFragment)
+    //     // From this point forward, _gonsPerFragment is taken as the source of truth.
+    //     // We recalculate a new _totalSupply to be in agreement with the _gonsPerFragment
+    //     // conversion rate.
+    //     // This means our applied supplyDelta can deviate from the requested supplyDelta,
+    //     // but this deviation is guaranteed to be < (_totalSupply^2)/(TOTAL_GONS - _totalSupply).
+    //     //
+    //     // In the case of _totalSupply <= MAX_UINT128 (our current supply cap), this
+    //     // deviation is guaranteed to be < 1, so we can omit this step. If the supply cap is
+    //     // ever increased, it must be re-included.
+    //     // _totalSupply = TOTAL_GONS.div(_gonsPerFragment)
 
-        emit LogRebase(epoch, _totalSupply);
-        return _totalSupply;
-    }
+    //     emit LogRebase(epoch, _totalSupply);
+    //     return _totalSupply;
+    // }
 
     function initialize(address owner_)
     public

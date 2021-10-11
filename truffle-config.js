@@ -22,8 +22,8 @@ require("dotenv").config();
 const HDWalletProvider = require("@truffle/hdwallet-provider");
 
 const privateKeys = [process.env.PRIVATE_KEY]; // private keys
-const xbtPrivateKeys = [process.env.XBT_PRIVATE_KEY]; // xbt genesis private keys
-const web3 = require("web3");
+// const xbtPrivateKeys = [process.env.XBT_PRIVATE_KEY]; // xbt genesis private keys
+// const web3 = require("web3");
 
 module.exports = {
   /**
@@ -51,12 +51,12 @@ module.exports = {
     //   skipDryRun: true,
     //   networkCheckTimeout: 100000,
     // },
-    local: {
-      provider: function() {
-        return new HDWalletProvider(privateKeys, "http://127.0.0.1:8545");
-      },
-      network_id: 5777, // Any network (default: none)
-    },
+    // local: {
+    //   provider: function () {
+    //     return new HDWalletProvider(privateKeys, "http://127.0.0.1:8545");
+    //   },
+    //   network_id: 5777, // Any network (default: none)
+    // },
     rinkeby: {
       provider: function() {
         return new HDWalletProvider(
@@ -73,14 +73,14 @@ module.exports = {
       provider: () =>
         new HDWalletProvider(
           privateKeys,
-          'https://data-seed-prebsc-1-s2.binance.org:8545'
+          'https://data-seed-prebsc-1-s1.binance.org:8545/'
         ),
       network_id: 97,
       confirmations: 10,
       timeoutBlocks: 200,
-      gas: 10000000,
-      gasPrice: 5e9,
-      skipDryRun: true,
+      gas: 5000000,
+      gasPrice: 11e9
+      // skipDryRun: true,
       // networkCheckTimeout: 90000,
       // Resolve time out error
       // https://github.com/trufflesuite/truffle/issues/3356#issuecomment-721352724
@@ -92,19 +92,19 @@ module.exports = {
       confirmations: 10,
       timeoutBlocks: 200,
       gas: 10000000,
-      gasPrice: 5e9,
-    },
+      gasPrice: 5e9
+    }
     // Useful for testing. The `development` name is special - truffle uses it by default
     // if it's defined here and no other network is specified at the command line.
     // You should run a client (like ganache-cli, geth or parity) in a separate terminal
     // tab if you use this network and you must also set the `host`, `port` and `network_id`
     // options below to some value.
     //
-    ganache: {
-      host: "127.0.0.1", // Localhost (default: none)
-      port: 7545, // Standard Ethereum port (default: none)
-      network_id: 5777, // Any network (default: none)
-    },
+    // ganache: {
+    //   host: "127.0.0.1", // Localhost (default: none)
+    //   port: 7545, // Standard Ethereum port (default: none)
+    //   network_id: 5777, // Any network (default: none)
+    // },
     // Another network with more advanced options...
     // advanced: {
     // port: 8777,             // Custom port

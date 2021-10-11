@@ -75,3 +75,7 @@ Ví dụ: 10 XBN ⇒ 10 * 10**18 ⇒ 10000000000000000000
 - Set **Exception Address: Set các địa chỉ ví không thu thuế:**
 
 ![Deploy%20XBN%203e28813f59fa424c9e69636adedfde6b/Untitled%208.png](Deploy%20XBN%203e28813f59fa424c9e69636adedfde6b/Untitled%208.png)
+
+
+### Notes:
+- 0x92D2C66734091c64FE5FC53AD2548031882Ef65d is proxy admin

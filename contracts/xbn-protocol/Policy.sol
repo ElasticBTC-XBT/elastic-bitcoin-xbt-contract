@@ -115,68 +115,68 @@ contract XBNPolicy is OwnableUpgradeSafe {
     }
 
 
-    /**
-     * @notice Initiates a new rebase operation, provided the minimum time period has elapsed.
-     *
-     * @dev The supply adjustment equals (_totalSupply * DeviationFromTargetRate) / rebaseLag
-     *      Where DeviationFromTargetRate is (exchangeRate - targetRate) / targetRate
-     *      and targetRate is WBTC/USDC
-     */
-    function rebase() external {
+    // /**
+    //  * @notice Initiates a new rebase operation, provided the minimum time period has elapsed.
+    //  *
+    //  * @dev The supply adjustment equals (_totalSupply * DeviationFromTargetRate) / rebaseLag
+    //  *      Where DeviationFromTargetRate is (exchangeRate - targetRate) / targetRate
+    //  *      and targetRate is WBTC/USDC
+    //  */
+    // function rebase() external {
 
 
-        require(msg.sender == tx.origin, "error: msg.sender == tx.origin");
-        // solhint-disable-line avoid-tx-origin
+    //     require(msg.sender == tx.origin, "error: msg.sender == tx.origin");
+    //     // solhint-disable-line avoid-tx-origin
 
 
-        require(inRebaseWindow(), "Not inRebaseWindow");
+    //     require(inRebaseWindow(), "Not inRebaseWindow");
 
-        // This comparison also ensures there is no reentrancy.
-        require(lastRebaseTimestampSec.add(minRebaseTimeIntervalSec) < now, "reentrancy error");
+    //     // This comparison also ensures there is no reentrancy.
+    //     require(lastRebaseTimestampSec.add(minRebaseTimeIntervalSec) < now, "reentrancy error");
 
-        // Snap the rebase time to the start of this window.
-        lastRebaseTimestampSec = now.sub(
-            now.mod(minRebaseTimeIntervalSec)).add(rebaseWindowOffsetSec);
+    //     // Snap the rebase time to the start of this window.
+    //     lastRebaseTimestampSec = now.sub(
+    //         now.mod(minRebaseTimeIntervalSec)).add(rebaseWindowOffsetSec);
 
-        epoch = epoch.add(1);
-
-
-        uint256 targetRate = 1 * PRICE_PRECISION;
-        // 1 XTH = 1 ETH ==> 1.mul(10 ** PRICE_PRECISION);
-
-        uint256 exchangeRate = getPriceXBN_BNB();
-
-        if (exchangeRate > MAX_RATE) {
-            exchangeRate = MAX_RATE;
-        }
-
-        int256 supplyDelta = computeSupplyDelta(exchangeRate, targetRate);
+    //     epoch = epoch.add(1);
 
 
-        // Apply the Dampening factor.
-        supplyDelta = supplyDelta.div(rebaseLag.toInt256Safe());
+    //     uint256 targetRate = 1 * PRICE_PRECISION;
+    //     // 1 XTH = 1 ETH ==> 1.mul(10 ** PRICE_PRECISION);
 
-        if (supplyDelta > 0 && XBNs.totalSupply().add(uint256(supplyDelta)) > MAX_SUPPLY) {
-            supplyDelta = (MAX_SUPPLY.sub(XBNs.totalSupply())).toInt256Safe();
-        }
+    //     uint256 exchangeRate = getPriceXBN_BNB();
 
-        uint256 supplyAfterRebase = XBNs.rebase(epoch, supplyDelta);
-        assert(supplyAfterRebase <= MAX_SUPPLY);
-        emit LogRebase(epoch, exchangeRate, supplyDelta, now);
+    //     if (exchangeRate > MAX_RATE) {
+    //         exchangeRate = MAX_RATE;
+    //     }
+
+    //     int256 supplyDelta = computeSupplyDelta(exchangeRate, targetRate);
 
 
-        for (uint i = 0; i < transactions.length; i++) {
-            Transaction storage t = transactions[i];
-            if (t.enabled) {
-                bool result =
-                externalCall(t.destination, t.data);
-                if (!result) {
-                    emit TransactionFailed(t.destination, i, t.data);
-                    revert("Transaction Failed");
-                }
-            }
-        }
-    }
+    //     // Apply the Dampening factor.
+    //     supplyDelta = supplyDelta.div(rebaseLag.toInt256Safe());
+
+    //     if (supplyDelta > 0 && XBNs.totalSupply().add(uint256(supplyDelta)) > MAX_SUPPLY) {
+    //         supplyDelta = (MAX_SUPPLY.sub(XBNs.totalSupply())).toInt256Safe();
+    //     }
+
+    //     uint256 supplyAfterRebase = XBNs.rebase(epoch, supplyDelta);
+    //     assert(supplyAfterRebase <= MAX_SUPPLY);
+    //     emit LogRebase(epoch, exchangeRate, supplyDelta, now);
+
+
+    //     for (uint i = 0; i < transactions.length; i++) {
+    //         Transaction storage t = transactions[i];
+    //         if (t.enabled) {
+    //             bool result =
+    //             externalCall(t.destination, t.data);
+    //             if (!result) {
+    //                 emit TransactionFailed(t.destination, i, t.data);
+    //                 revert("Transaction Failed");
+    //             }
+    //         }
+    //     }
+    // }
 
     /**
      * @notice Adds a transaction that gets called for a downstream receiver of rebases
